@@ -53,7 +53,7 @@ function Typewriter({ words }: { words: string[] }) {
     }, del ? 35 : 80);
     return () => clearTimeout(t);
   }, [txt, del, idx, words]);
-  return <><span className="text-indigo-400">{txt}</span><span className="text-indigo-400 animate-pulse">|</span></>;
+  return <><span className="text-cyan-400">{txt}</span><span className="text-cyan-400 animate-pulse">|</span></>;
 }
 
 /* ─── counter animation ─── */
@@ -153,7 +153,7 @@ export default function App() {
 
   /* ── RENDER ── */
   return (
-    <div className="min-h-screen bg-[#050508] text-neutral-100 antialiased">
+    <div className="min-h-screen bg-[#040b19] text-neutral-100 antialiased">
 
       {/* ── INJECTED CSS ── */}
       <style>{`
@@ -161,7 +161,7 @@ export default function App() {
         :root { scroll-behavior: smooth; }
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: #0891b2; border-radius: 2px; }
 
         /* ── layout containers ── */
         .site-wrap   { max-width: 1480px; margin: 0 auto; padding: 0 40px; }
@@ -172,7 +172,7 @@ export default function App() {
         }
 
         /* ── section divider ── */
-        .section-line { width: 48px; height: 3px; background: linear-gradient(90deg,#6366f1,#c084fc); border-radius: 2px; }
+        .section-line { width: 48px; height: 3px; background: linear-gradient(90deg,#06b6d4,#14b8a6); border-radius: 2px; }
 
         /* ── card ── */
         .card {
@@ -182,8 +182,8 @@ export default function App() {
           transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
         }
         .card:hover {
-          border-color: rgba(99, 102, 241,0.25);
-          box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(99, 102, 241,0.08);
+          border-color: rgba(6, 182, 212,0.25);
+          box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(6, 182, 212,0.08);
           transform: translateY(-3px);
         }
 
@@ -191,8 +191,8 @@ export default function App() {
         .pill {
           display: inline-flex; align-items: center;
           padding: 4px 12px; font-size: 11px; font-weight: 600;
-          background: rgba(99, 102, 241,0.08); color: #818cf8;
-          border: 1px solid rgba(99, 102, 241,0.18); border-radius: 999px;
+          background: rgba(6, 182, 212,0.08); color: #22d3ee;
+          border: 1px solid rgba(6, 182, 212,0.18); border-radius: 999px;
           letter-spacing: 0.05em;
         }
 
@@ -206,7 +206,7 @@ export default function App() {
           transition: background 0.2s, color 0.2s;
           cursor: default;
         }
-        .tag:hover { background: rgba(99, 102, 241,0.12); color: #818cf8; }
+        .tag:hover { background: rgba(6, 182, 212,0.12); color: #22d3ee; }
 
         /* ── skill block ── */
         .skill-group { border-radius: 16px; padding: 20px 24px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
@@ -222,15 +222,15 @@ export default function App() {
         }
         .proj-card::before {
           content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(99, 102, 241,0.5), transparent);
+          background: linear-gradient(90deg, transparent, rgba(6, 182, 212,0.5), transparent);
           opacity: 0; transition: opacity 0.3s;
         }
-        .proj-card:hover { border-color: rgba(99, 102, 241,0.2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .proj-card:hover { border-color: rgba(6, 182, 212,0.2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
         .proj-card:hover::before { opacity: 1; }
 
         /* ── timeline ── */
-        .tl-line { position: absolute; left: 23px; top: 48px; bottom: 0; width: 1px; background: linear-gradient(to bottom, rgba(99, 102, 241,0.6), transparent); }
-        .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: #050508; border: 2px solid #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241,0.4); flex-shrink: 0; margin-top: 4px; }
+        .tl-line { position: absolute; left: 23px; top: 48px; bottom: 0; width: 1px; background: linear-gradient(to bottom, rgba(6, 182, 212,0.6), transparent); }
+        .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: #040b19; border: 2px solid #06b6d4; box-shadow: 0 0 10px rgba(6, 182, 212,0.4); flex-shrink: 0; margin-top: 4px; }
 
         /* ── form ── */
         .form-field {
@@ -243,19 +243,19 @@ export default function App() {
           font-family: inherit;
         }
         .form-field::placeholder { color: #4a4a4a; }
-        .form-field:focus { border-color: rgba(99, 102, 241,0.45); box-shadow: 0 0 0 3px rgba(99, 102, 241,0.07); }
+        .form-field:focus { border-color: rgba(6, 182, 212,0.45); box-shadow: 0 0 0 3px rgba(6, 182, 212,0.07); }
         .form-field.err { border-color: rgba(239,68,68,0.5); }
 
         /* ── nav ── */
         .nav-pill { padding: 6px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; transition: background 0.2s, color 0.2s; cursor: pointer; border: none; background: transparent; color: #737373; }
         .nav-pill:hover { color: #e5e5e5; background: rgba(255,255,255,0.05); }
-        .nav-pill.active { color: #6366f1; background: rgba(99, 102, 241,0.1); font-weight: 600; }
+        .nav-pill.active { color: #06b6d4; background: rgba(6, 182, 212,0.1); font-weight: 600; }
 
         /* ── hero ── */
         .hero-number { font-size: clamp(120px, 18vw, 220px); font-weight: 900; line-height: 0.85; letter-spacing: -0.06em; color: rgba(255,255,255,0.04); user-select: none; pointer-events: none; }
 
         /* ── section label ── */
-        .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6366f1; }
+        .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #06b6d4; }
 
         /* ── glow ── */
         .glow { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; }
@@ -268,11 +268,11 @@ export default function App() {
         .btn-primary {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 11px 24px; font-size: 13px; font-weight: 700;
-          background: #6366f1; color: #000; border: none; border-radius: 12px;
+          background: #06b6d4; color: #000; border: none; border-radius: 12px;
           cursor: pointer; transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
           text-decoration: none;
         }
-        .btn-primary:hover { background: #818cf8; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241,0.3); }
+        .btn-primary:hover { background: #22d3ee; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(6, 182, 212,0.3); }
 
         .btn-ghost {
           display: inline-flex; align-items: center; gap: 8px;
@@ -282,7 +282,7 @@ export default function App() {
           cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
           text-decoration: none;
         }
-        .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(99, 102, 241,0.25); transform: translateY(-2px); color: #fff; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(6, 182, 212,0.25); transform: translateY(-2px); color: #fff; }
 
         /* ── scroll indicator ── */
         @keyframes scrollBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
@@ -291,7 +291,7 @@ export default function App() {
         /* ── cert badge ── */
         .cert-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .cert-row:last-child { border-bottom: none; padding-bottom: 0; }
-        .cert-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(99, 102, 241,0.1); border: 1px solid rgba(99, 102, 241,0.2); }
+        .cert-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(6, 182, 212,0.1); border: 1px solid rgba(6, 182, 212,0.2); }
 
         @keyframes fadeInDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:none} }
         .fade-in-down { animation: fadeInDown 0.25s ease forwards; }
@@ -304,9 +304,9 @@ export default function App() {
         style={{
           position: 'fixed', bottom: 28, right: 28, zIndex: 60,
           width: 44, height: 44, borderRadius: 12,
-          background: '#6366f1', color: '#000', border: 'none', cursor: 'pointer',
+          background: '#06b6d4', color: '#000', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(99, 102, 241,0.35)',
+          boxShadow: '0 4px 20px rgba(6, 182, 212,0.35)',
           opacity: showTop ? 1 : 0, transform: showTop ? 'scale(1)' : 'scale(0.7)',
           transition: 'opacity 0.3s, transform 0.3s', pointerEvents: showTop ? 'auto' : 'none',
         }}
@@ -319,15 +319,15 @@ export default function App() {
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
         transition: 'all 0.4s',
         padding: scrolled ? '10px 0' : '18px 0',
-        background: scrolled ? 'rgba(5, 5, 8, 0.85)' : 'transparent',
+        background: scrolled ? 'rgba(4, 11, 25, 0.85)' : 'transparent',
         backdropFilter: scrolled ? 'blur(20px)' : 'none',
         borderBottom: scrolled ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
       }}>
         <div className="site-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Logo */}
           <button onClick={() => goTo('hero')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 15, color: '#000' }}>N</div>
-            <span style={{ fontWeight: 700, fontSize: 14, color: '#e5e5e5', letterSpacing: '-0.01em' }}>Nafis<span style={{ color: '#6366f1' }}>.</span></span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#06b6d4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 15, color: '#000' }}>N</div>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#e5e5e5', letterSpacing: '-0.01em' }}>Nafis<span style={{ color: '#06b6d4' }}>.</span></span>
           </button>
 
           {/* Desktop nav */}
@@ -356,7 +356,7 @@ export default function App() {
         {/* Mobile menu */}
         {menuOpen && (
           <div className="fade-in-down site-wrap" style={{ paddingTop: 12, paddingBottom: 12 }}>
-            <div style={{ background: 'rgba(10, 10, 15, 0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '12px 8px', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ background: 'rgba(8, 20, 40, 0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '12px 8px', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', gap: 2 }}>
               {nav.map(item => {
                 const id = item === 'Home' ? 'hero' : item.toLowerCase();
                 return <button key={item} onClick={() => goTo(id)} className={`nav-pill ${active === id ? 'active' : ''}`} style={{ textAlign: 'left' }}>{item}</button>;
@@ -378,8 +378,8 @@ export default function App() {
       <section id="hero" ref={sections.hero} style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden', paddingTop: 100, paddingBottom: 60 }}>
 
         {/* Background decorations */}
-        <div className="glow" style={{ width: 700, height: 700, top: -200, right: -200, background: 'rgba(99, 102, 241,0.06)' }} />
-        <div className="glow" style={{ width: 400, height: 400, bottom: 0, left: -100, background: 'rgba(99, 102, 241,0.04)' }} />
+        <div className="glow" style={{ width: 700, height: 700, top: -200, right: -200, background: 'rgba(6, 182, 212,0.06)' }} />
+        <div className="glow" style={{ width: 400, height: 400, bottom: 0, left: -100, background: 'rgba(6, 182, 212,0.04)' }} />
 
         {/* Watermark number */}
         <div className="hero-number" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', userSelect: 'none', lineHeight: 1 }}>01</div>
@@ -398,7 +398,7 @@ export default function App() {
               <h1 style={{ fontSize: 'clamp(48px, 8vw, 96px)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.04em', color: '#fff' }}>
                 Md. Nafis<br />
                 <span style={{ WebkitTextStroke: '1px rgba(255,255,255,0.25)', color: 'transparent' }}>Sadique</span><br />
-                <span style={{ color: '#6366f1' }}>Niloy</span>
+                <span style={{ color: '#06b6d4' }}>Niloy</span>
               </h1>
             </div>
           </Reveal>
@@ -442,14 +442,14 @@ export default function App() {
               ].map(({ icon: Icon, href, label }) => (
                 <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" aria-label={label}
                   style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#737373', transition: 'all 0.2s', textDecoration: 'none' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#6366f1'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99, 102, 241,0.3)'; }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#06b6d4'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(6, 182, 212,0.3)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#737373'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
                   <Icon size={16} />
                 </a>
               ))}
               <div style={{ height: 20, width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#525252', fontSize: 12 }}>
-                <MapPin size={11} style={{ color: '#6366f1' }} /> Dhaka, Bangladesh
+                <MapPin size={11} style={{ color: '#06b6d4' }} /> Dhaka, Bangladesh
               </div>
             </div>
           </Reveal>
@@ -458,7 +458,7 @@ export default function App() {
         {/* Scroll indicator */}
         <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 10, color: '#404040', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Scroll</span>
-          <div className="scroll-bounce" style={{ width: 1, height: 40, background: 'linear-gradient(to bottom, #6366f1, transparent)' }} />
+          <div className="scroll-bounce" style={{ width: 1, height: 40, background: 'linear-gradient(to bottom, #06b6d4, transparent)' }} />
         </div>
       </section>
 
@@ -474,7 +474,7 @@ export default function App() {
             ].map(({ value, suffix, label, icon: Icon }, i) => (
               <Reveal key={label} delay={i * 80}>
                 <div className="stat-item" style={{ textAlign: 'center', padding: '32px 24px' }}>
-                  <Icon size={18} style={{ color: '#6366f1', marginBottom: 10, display: 'block', margin: '0 auto 10px' }} />
+                  <Icon size={18} style={{ color: '#06b6d4', marginBottom: 10, display: 'block', margin: '0 auto 10px' }} />
                   <div style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
                     <Counter to={value} suffix={suffix} />
                   </div>
@@ -488,7 +488,7 @@ export default function App() {
 
       {/* ═══════════════════════ ABOUT SECTION ════════════════════════ */}
       <section id="about" ref={sections.about} style={{ padding: '100px 0', position: 'relative' }}>
-        <div className="glow" style={{ width: 500, height: 500, top: 0, left: -200, background: 'rgba(99, 102, 241,0.04)' }} />
+        <div className="glow" style={{ width: 500, height: 500, top: 0, left: -200, background: 'rgba(6, 182, 212,0.04)' }} />
 
         <div className="site-wrap">
           {/* Section header */}
@@ -530,7 +530,7 @@ export default function App() {
                 {/* Quick facts grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {[
-                    { icon: MapPin, text: 'Dhaka, Bangladesh', color: '#6366f1' },
+                    { icon: MapPin, text: 'Dhaka, Bangladesh', color: '#06b6d4' },
                     { icon: Briefcase, text: 'ATI Limited', color: '#60a5fa' },
                     { icon: CheckCircle, text: 'CSPO® Certified', color: '#34d399' },
                     { icon: GraduationCap, text: 'BRAC University', color: '#a78bfa' },
@@ -555,7 +555,7 @@ export default function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Skills Portfolio</h3>
                 {Object.entries(skills).map(([cat, list], ci) => {
-                  const colors = ['#6366f1', '#60a5fa', '#a78bfa'];
+                  const colors = ['#06b6d4', '#60a5fa', '#a78bfa'];
                   return (
                     <div key={cat} className="skill-group">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -576,7 +576,7 @@ export default function App() {
 
       {/* ═══════════════════════ PROJECTS ══════════════════════════════ */}
       <section id="projects" ref={sections.projects} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(255,255,255,0.008)' }}>
-        <div className="glow" style={{ width: 600, height: 600, top: 0, right: -200, background: 'rgba(99, 102, 241,0.04)' }} />
+        <div className="glow" style={{ width: 600, height: 600, top: 0, right: -200, background: 'rgba(6, 182, 212,0.04)' }} />
 
         <div className="site-wrap">
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 56, flexWrap: 'wrap', gap: 20 }}>
@@ -590,9 +590,9 @@ export default function App() {
               </div>
             </Reveal>
             <Reveal delay={80}>
-              <div style={{ padding: '8px 14px', background: 'rgba(99, 102, 241,0.08)', border: '1px solid rgba(99, 102, 241,0.18)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <Briefcase size={13} style={{ color: '#6366f1' }} />
-                <span style={{ fontSize: 12, color: '#818cf8', fontWeight: 600 }}>ATI Limited — Enterprise Delivery</span>
+              <div style={{ padding: '8px 14px', background: 'rgba(6, 182, 212,0.08)', border: '1px solid rgba(6, 182, 212,0.18)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Briefcase size={13} style={{ color: '#06b6d4' }} />
+                <span style={{ fontSize: 12, color: '#22d3ee', fontWeight: 600 }}>ATI Limited — Enterprise Delivery</span>
               </div>
             </Reveal>
           </div>
@@ -626,7 +626,7 @@ export default function App() {
               ].map((p, i) => (
                 <Reveal key={p.title} delay={i * 60}>
                   <div className="proj-card" style={{ height: '100%' }}>
-                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6366f1', background: 'rgba(99, 102, 241,0.08)', border: '1px solid rgba(99, 102, 241,0.15)', padding: '3px 8px', borderRadius: 6, alignSelf: 'flex-start', display: 'inline-block' }}>{p.client}</span>
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#06b6d4', background: 'rgba(6, 182, 212,0.08)', border: '1px solid rgba(6, 182, 212,0.15)', padding: '3px 8px', borderRadius: 6, alignSelf: 'flex-start', display: 'inline-block' }}>{p.client}</span>
                     <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{p.title}</h4>
                     <p style={{ fontSize: 11, color: '#737373', lineHeight: 1.7, flexGrow: 1 }}>{p.desc}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
@@ -657,7 +657,7 @@ export default function App() {
                     <h4 style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{p.title}</h4>
                     <p style={{ fontSize: 12, color: '#737373', lineHeight: 1.7 }}>{p.desc}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                      <Code size={11} style={{ color: '#6366f1' }} />
+                      <Code size={11} style={{ color: '#06b6d4' }} />
                       <span style={{ fontSize: 10, color: '#525252' }}>{p.tech}</span>
                     </div>
                   </div>
@@ -711,7 +711,7 @@ export default function App() {
                           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
                             <div>
                               <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{exp.role}</h3>
-                              <p style={{ fontSize: 12, color: '#6366f1', fontWeight: 600 }}>{exp.company}</p>
+                              <p style={{ fontSize: 12, color: '#06b6d4', fontWeight: 600 }}>{exp.company}</p>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                               <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: exp.statusBg, color: exp.statusColor, border: `1px solid ${exp.statusBorder}` }}>{exp.status}</span>
@@ -721,7 +721,7 @@ export default function App() {
                           <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {exp.points.map((pt, pi) => (
                               <li key={pi} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#6366f1', flexShrink: 0, marginTop: 6 }} />
+                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#06b6d4', flexShrink: 0, marginTop: 6 }} />
                                 <span style={{ fontSize: 11, color: '#737373', lineHeight: 1.7 }}>{pt}</span>
                               </li>
                             ))}
@@ -780,7 +780,7 @@ export default function App() {
               <Reveal from="right" delay={100}>
                 <div className="card" style={{ padding: '24px 28px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                    <Award size={16} style={{ color: '#6366f1' }} />
+                    <Award size={16} style={{ color: '#06b6d4' }} />
                     <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Credentials</h3>
                   </div>
                   <div>
@@ -791,16 +791,16 @@ export default function App() {
                       { title: 'Generative AI for Project Managers', issuer: 'PMI', date: 'Feb 2026' },
                     ].map((c, ci) => (
                       <div key={ci} className="cert-row">
-                        <div className="cert-icon"><Award size={14} style={{ color: '#6366f1' }} /></div>
+                        <div className="cert-icon"><Award size={14} style={{ color: '#06b6d4' }} /></div>
                         <div style={{ flex: 1 }}>
                           <h4 style={{ fontSize: 12, fontWeight: 700, color: '#fff', lineHeight: 1.4, marginBottom: 3 }}>{c.title}</h4>
                           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
-                            <span style={{ fontSize: 10, color: '#6366f1', fontWeight: 600 }}>{c.issuer}</span>
+                            <span style={{ fontSize: 10, color: '#06b6d4', fontWeight: 600 }}>{c.issuer}</span>
                             <span style={{ fontSize: 10, color: '#525252' }}>{c.date}</span>
                           </div>
                           {c.id && <p style={{ fontSize: 9, color: '#404040', marginTop: 2 }}>ID: {c.id}</p>}
                           {c.link && (
-                            <a href={c.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, color: '#6366f1', textDecoration: 'none', marginTop: 4 }}>
+                            <a href={c.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, color: '#06b6d4', textDecoration: 'none', marginTop: 4 }}>
                               Verify <ExternalLink size={8} />
                             </a>
                           )}
@@ -817,7 +817,7 @@ export default function App() {
 
       {/* ═══════════════════════ CONTACT ════════════════════════════════ */}
       <section id="contact" ref={sections.contact} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(255,255,255,0.008)' }}>
-        <div className="glow" style={{ width: 600, height: 600, bottom: -100, left: '50%', transform: 'translateX(-50%)', background: 'rgba(99, 102, 241,0.04)' }} />
+        <div className="glow" style={{ width: 600, height: 600, bottom: -100, left: '50%', transform: 'translateX(-50%)', background: 'rgba(6, 182, 212,0.04)' }} />
 
         <div className="site-wrap-sm" style={{ position: 'relative', zIndex: 1 }}>
           <Reveal style={{ textAlign: 'center', marginBottom: 60 }}>
@@ -840,12 +840,12 @@ export default function App() {
                   { icon: MapPin, label: 'Location', value: 'Bashundhara RA, Dhaka, Bangladesh', href: null },
                 ].map(({ icon: Icon, label, value, href }) => (
                   <div key={label} className="card" style={{ padding: '18px 22px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(99, 102, 241,0.08)', border: '1px solid rgba(99, 102, 241,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Icon size={15} style={{ color: '#6366f1' }} />
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(6, 182, 212,0.08)', border: '1px solid rgba(6, 182, 212,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={15} style={{ color: '#06b6d4' }} />
                     </div>
                     <div>
                       <p style={{ fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{label}</p>
-                      {href ? <a href={href} style={{ fontSize: 12, color: '#a3a3a3', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#6366f1')} onMouseLeave={e => (e.currentTarget.style.color = '#a3a3a3')}>{value}</a>
+                      {href ? <a href={href} style={{ fontSize: 12, color: '#a3a3a3', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#06b6d4')} onMouseLeave={e => (e.currentTarget.style.color = '#a3a3a3')}>{value}</a>
                         : <p style={{ fontSize: 12, color: '#a3a3a3' }}>{value}</p>}
                     </div>
                   </div>
@@ -911,7 +911,7 @@ export default function App() {
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '28px 0' }}>
         <div className="site-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, color: '#000' }}>N</div>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: '#06b6d4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, color: '#000' }}>N</div>
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: '#e5e5e5' }}>Nafis Sadique Niloy</p>
               <p style={{ fontSize: 10, color: '#404040' }}>Project Coordinator · CSPO®</p>
@@ -920,7 +920,7 @@ export default function App() {
           <p style={{ fontSize: 10, color: '#404040' }}>© 2026 Md. Nafis Sadique Niloy · All rights reserved.</p>
           <div style={{ display: 'flex', gap: 12 }}>
             {[{ icon: Github, href: 'https://github.com/Nafis588' }, { icon: Linkedin, href: 'https://www.linkedin.com/in/nafissn/' }, { icon: Mail, href: 'mailto:mdnafissadiqueniloy@gmail.com' }].map(({ icon: Icon, href }, i) => (
-              <a key={i} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ color: '#404040', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#6366f1')} onMouseLeave={e => (e.currentTarget.style.color = '#404040')}>
+              <a key={i} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ color: '#404040', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#06b6d4')} onMouseLeave={e => (e.currentTarget.style.color = '#404040')}>
                 <Icon size={15} />
               </a>
             ))}
