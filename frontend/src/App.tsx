@@ -1,1071 +1,929 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Github,
-  Linkedin,
-  Mail,
-  Moon,
-  Sun,
-  ChevronUp,
-  MapPin,
-  Briefcase,
-  ExternalLink,
-  Code,
-  Send,
-  Menu,
-  X,
-  ArrowRight,
-  Award,
-  GraduationCap,
-  Users,
-  Download,
-  FileText,
-  Calendar,
-  CheckCircle,
-  Sparkles,
+  Github, Linkedin, Mail, Moon, Sun, ChevronUp, MapPin,
+  Briefcase, ExternalLink, Code, Send, Menu, X, ArrowRight,
+  Award, GraduationCap, Users, Download, FileText, Sparkles,
+  CheckCircle, Calendar,
 } from 'lucide-react';
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Tiny custom hook: fires a callback when element enters the viewport
-───────────────────────────────────────────────────────────────────────── */
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLElement>(null);
-  const [inView, setInView] = useState(false);
+/* ─── intersection-observer hook ─── */
+function useVisible(rootMargin = '-80px') {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, inView };
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); io.disconnect(); } }, { rootMargin });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [rootMargin]);
+  return { ref, visible };
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Section wrapper with fade-up animation on scroll
-───────────────────────────────────────────────────────────────────────── */
-function FadeUp({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const { ref, inView } = useInView();
+/* ─── animated section reveal ─── */
+function Reveal({ children, delay = 0, from = 'bottom', className = '', style: extraStyle }: {
+  children: React.ReactNode; delay?: number; from?: 'bottom' | 'left' | 'right'; className?: string; style?: React.CSSProperties;
+}) {
+  const { ref, visible } = useVisible();
+  const transforms: Record<string, string> = { bottom: 'translateY(40px)', left: 'translateX(-40px)', right: 'translateX(40px)' };
   return (
-    <div
-      ref={ref as React.RefObject<HTMLDivElement>}
-      className={className}
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? 'translateY(0)' : 'translateY(32px)',
-        transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
-      }}
-    >
-      {children}
-    </div>
+    <div ref={ref} className={className} style={{
+      opacity: visible ? 1 : 0,
+      ...extraStyle,
+      transform: visible ? 'none' : transforms[from],
+      transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
+    }}>{children}</div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Typewriter effect
-───────────────────────────────────────────────────────────────────────── */
+/* ─── typewriter ─── */
 function Typewriter({ words }: { words: string[] }) {
-  const [wordIdx, setWordIdx] = useState(0);
-  const [text, setText] = useState('');
-  const [isDeleting, setIsDeleting] = useState(false);
-
+  const [idx, setIdx] = useState(0);
+  const [txt, setTxt] = useState('');
+  const [del, setDel] = useState(false);
   useEffect(() => {
-    const current = words[wordIdx % words.length];
-    const speed = isDeleting ? 40 : 90;
-    const timeout = setTimeout(() => {
-      setText(prev => isDeleting ? current.substring(0, prev.length - 1) : current.substring(0, prev.length + 1));
-      if (!isDeleting && text === current) {
-        setTimeout(() => setIsDeleting(true), 1800);
-      } else if (isDeleting && text === '') {
-        setIsDeleting(false);
-        setWordIdx(i => i + 1);
+    const word = words[idx % words.length];
+    const t = setTimeout(() => {
+      if (!del) {
+        setTxt(word.slice(0, txt.length + 1));
+        if (txt.length + 1 === word.length) setTimeout(() => setDel(true), 2000);
+      } else {
+        setTxt(word.slice(0, txt.length - 1));
+        if (txt.length - 1 === 0) { setDel(false); setIdx(i => i + 1); }
       }
-    }, speed);
-    return () => clearTimeout(timeout);
-  }, [text, isDeleting, wordIdx, words]);
-
-  return (
-    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">
-      {text}
-      <span className="animate-pulse text-amber-400">|</span>
-    </span>
-  );
+    }, del ? 35 : 80);
+    return () => clearTimeout(t);
+  }, [txt, del, idx, words]);
+  return <><span className="text-amber-400">{txt}</span><span className="text-amber-400 animate-pulse">|</span></>;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Main App
-───────────────────────────────────────────────────────────────────────── */
-function App() {
+/* ─── counter animation ─── */
+function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const { ref, visible } = useVisible();
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!visible) return;
+    let start = 0;
+    const step = Math.ceil(to / 40);
+    const id = setInterval(() => { start = Math.min(start + step, to); setCount(start); if (start >= to) clearInterval(id); }, 40);
+    return () => clearInterval(id);
+  }, [visible, to]);
+  return <span ref={ref}>{count}{suffix}</span>;
+}
+
+/* ══════════════════════════════════════════════════ MAIN APP ══ */
+export default function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
-  const [activeSection, setActiveSection] = useState('hero');
-
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+  const [active, setActive] = useState('hero');
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
-  const [formErrors, setFormErrors] = useState({ name: false, email: false, subject: false, message: false });
-  const [formStatus, setFormStatus] = useState<{ type: 'success' | 'error' | ''; text: string }>({ type: '', text: '' });
-  const [submitting, setSubmitting] = useState(false);
+  const [formErr, setFormErr] = useState({ name: false, email: false, subject: false, message: false });
+  const [formStatus, setFormStatus] = useState<{ t: 'success' | 'error' | ''; msg: string }>({ t: '', msg: '' });
+  const [sending, setSending] = useState(false);
 
-  const sectionsRef = {
-    hero: useRef<HTMLElement>(null),
-    about: useRef<HTMLElement>(null),
-    projects: useRef<HTMLElement>(null),
-    experience: useRef<HTMLElement>(null),
-    contact: useRef<HTMLElement>(null),
-  };
+  const sections = { hero: useRef<HTMLElement>(null), about: useRef<HTMLElement>(null), projects: useRef<HTMLElement>(null), experience: useRef<HTMLElement>(null), contact: useRef<HTMLElement>(null) };
 
   useEffect(() => {
     const saved = localStorage.getItem('theme') as 'dark' | 'light' | null;
-    const initial = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    setTheme(initial);
-    document.documentElement.classList.toggle('dark', initial === 'dark');
-    document.documentElement.setAttribute('data-theme', initial);
+    const t = saved ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(t); applyTheme(t);
   }, []);
+
+  const applyTheme = (t: string) => {
+    document.documentElement.classList.toggle('dark', t === 'dark');
+    document.documentElement.setAttribute('data-theme', t);
+  };
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    localStorage.setItem('theme', next);
-    document.documentElement.classList.toggle('dark', next === 'dark');
-    document.documentElement.setAttribute('data-theme', next);
+    setTheme(next); localStorage.setItem('theme', next); applyTheme(next);
   };
 
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      setIsScrolled(y > 50);
-      setShowBackToTop(y > 300);
-      let current = 'hero';
-      for (const key of Object.keys(sectionsRef)) {
-        const el = sectionsRef[key as keyof typeof sectionsRef].current;
-        if (el && y >= el.offsetTop - 160) current = key;
-      }
-      setActiveSection(current);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+  const goTo = useCallback((id: string) => {
+    setMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const scrollTo = (id: string) => {
-    setIsMenuOpen(false);
-    const el = document.getElementById(id);
-    if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormStatus({ type: '', text: '' });
-    const errors = {
-      name: !formData.name.trim(),
-      email: !formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email),
-      subject: !formData.subject.trim(),
-      message: !formData.message.trim(),
+  useEffect(() => {
+    const handle = () => {
+      const y = window.scrollY;
+      setScrolled(y > 60); setShowTop(y > 400);
+      for (const k of ['contact', 'experience', 'projects', 'about', 'hero'] as const) {
+        const el = sections[k].current;
+        if (el && y >= el.offsetTop - 200) { setActive(k); break; }
+      }
     };
-    setFormErrors(errors);
-    if (Object.values(errors).some(Boolean)) {
-      setFormStatus({ type: 'error', text: 'Please fill in all required fields correctly.' });
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const res = await fetch('http://localhost:5000/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to submit.');
-      setFormStatus({ type: 'success', text: 'Message sent successfully! I will get back to you shortly.' });
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (err: any) {
-      setFormStatus({ type: 'error', text: `Failed: ${err.message}` });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    window.addEventListener('scroll', handle, { passive: true });
+    return () => window.removeEventListener('scroll', handle);
+  }, []);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(p => ({ ...p, [name]: value }));
-    setFormErrors(p => ({ ...p, [name]: false }));
+    setFormErr(p => ({ ...p, [name]: false }));
   };
 
-  const navLinks = ['Home', 'About', 'Projects', 'Experience', 'Contact'];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = {
+      name: !formData.name.trim(), email: !formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email),
+      subject: !formData.subject.trim(), message: !formData.message.trim(),
+    };
+    setFormErr(errs);
+    if (Object.values(errs).some(Boolean)) { setFormStatus({ t: 'error', msg: 'Please fill in all required fields.' }); return; }
+    setSending(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.message);
+      setFormStatus({ t: 'success', msg: 'Message sent! I\'ll get back to you within 24 hours.' });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (err: any) {
+      setFormStatus({ t: 'error', msg: err.message || 'Failed to send.' });
+    } finally { setSending(false); }
+  };
 
-  /* ── Enterprise Projects ── */
-  const enterpriseProjects = [
-    {
-      title: 'Budget Management System',
-      client: 'Bangladesh Navy',
-      desc: 'Led requirement elicitation and coordinated delivery of budget workflow modules. Acted as stakeholder liaison to lock scope and manage change requests.',
-      tags: ['Scope Management', 'Backlog Tracking', 'Agile'],
-      accent: 'from-blue-500/20 to-blue-600/5',
-    },
-    {
-      title: 'NATDOC Website (CMS)',
-      client: 'Bangladesh Navy',
-      desc: 'Validated on-site requirements and finalized SRS, establishing content structures, workflows, and approvals. Coordinated milestones and dev feedback loops.',
-      tags: ['SRS', 'Requirement Eng.', 'Dynamic CMS'],
-      accent: 'from-indigo-500/20 to-indigo-600/5',
-    },
-    {
-      title: 'ERP Modules (HR, Payroll, Accounts)',
-      client: 'Jamuna Oil Company',
-      desc: 'Supported gap analysis and requirement detailing for HR and Payroll ERP modules. Structured timelines and rollout dependencies for phased delivery.',
-      tags: ['Gap Analysis', 'ERP', 'Timeline Tracking'],
-      accent: 'from-violet-500/20 to-violet-600/5',
-    },
-    {
-      title: 'Dynamic University Website',
-      client: 'Bangladesh Maritime University',
-      desc: 'Coordinated a full redesign, content migration, and delivery workflows. Facilitated issue tracking, content verification, and rollout support.',
-      tags: ['CMS Workflow', 'Content Migration', 'Issue Triage'],
-      accent: 'from-amber-500/20 to-amber-600/5',
-    },
-    {
-      title: 'Centralized Healthcare Platform',
-      client: 'Ghana Healthcare Client',
-      desc: 'Supported delivery of a multi-tenant platform where multiple hospital systems operate concurrently. Coordinated milestone tracking and cross-border comms.',
-      tags: ['Multi-Tenant', 'Milestones', 'Cross-Border'],
-      accent: 'from-emerald-500/20 to-emerald-600/5',
-    },
-  ];
+  const nav = ['Home', 'About', 'Projects', 'Experience', 'Contact'];
+  const skills = {
+    'Project Management': ['Sprint Planning', 'Backlog Grooming', 'UAT Facilitation', 'Release Readiness', 'Agile/Hybrid SDLC', 'Cross-functional Teams'],
+    'Business Analysis': ['Requirement Elicitation', 'User Story Mapping', 'BRD/SRS Writing', 'Workflow Analysis', 'Acceptance Criteria', 'Prioritization'],
+    'Tools & Tech': ['Jira', 'Notion', 'Slack', 'GitHub', 'React.js', 'TypeScript', 'Node.js', 'MongoDB'],
+  };
 
-  const academicProjects = [
-    {
-      title: 'USIS 3.0 Student Portal',
-      desc: 'Student portal with schedule planning and course selection optimization. Demonstrates full-stack architectural integration.',
-      tech: 'React · TypeScript · MongoDB · Tailwind',
-    },
-    {
-      title: 'BRACU OCA System',
-      desc: 'Club activity tracker and event approval workflow automation for the BRAC University Office of Co-Curricular Activities.',
-      tech: 'Next.js · React · MongoDB',
-    },
-  ];
-
-  const certifications = [
-    { title: 'Certified Scrum Product Owner (CSPO)®', issuer: 'Scrum Alliance', date: 'Jun 2026', id: '2196763', link: 'https://bcert.me/siupsirvv' },
-    { title: 'Project Initiation: Starting a Successful Project', issuer: 'Google · Coursera', date: 'Apr 2026', id: 'O2WTV45BBNIQ' },
-    { title: 'Foundations of Project Management', issuer: 'Google · Coursera', date: 'Mar 2026', id: 'CRCUF0HV72LE' },
-    { title: 'Generative AI for Project Managers', issuer: 'PMI', date: 'Feb 2026' },
-  ];
-
-  /* ────────────────────────────────────────────────────────────────────── */
+  /* ── RENDER ── */
   return (
-    <div className="min-h-screen bg-[#080808] text-neutral-100 antialiased selection:bg-amber-500/30 selection:text-amber-100">
+    <div className="min-h-screen bg-[#0a0a0a] text-neutral-100 antialiased">
 
-      {/* ── GLOBAL STYLES (injected once) ── */}
+      {/* ── INJECTED CSS ── */}
       <style>{`
+        *, *::before, *::after { box-sizing: border-box; margin: 0; }
         :root { scroll-behavior: smooth; }
-        * { box-sizing: border-box; }
-
-        /* scrollbar */
-        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #d97706; border-radius: 2px; }
 
-        /* glass card */
-        .glass {
-          background: rgba(255,255,255,0.03);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 16px;
-        }
-        .glass:hover {
-          border-color: rgba(245,158,11,0.18);
-          box-shadow: 0 0 32px rgba(245,158,11,0.06);
+        /* ── layout containers ── */
+        .site-wrap   { max-width: 1480px; margin: 0 auto; padding: 0 40px; }
+        .site-wrap-sm{ max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+        @media (max-width: 768px) {
+          .site-wrap, .site-wrap-sm { padding: 0 20px; }
         }
 
-        /* ambient glow blobs */
-        .glow-amber {
-          position: absolute;
-          border-radius: 50%;
-          background: rgba(245,158,11,0.07);
-          filter: blur(100px);
-          pointer-events: none;
+        /* ── section divider ── */
+        .section-line { width: 48px; height: 3px; background: linear-gradient(90deg,#f59e0b,#fcd34d); border-radius: 2px; }
+
+        /* ── card ── */
+        .card {
+          background: rgba(255,255,255,0.025);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 20px;
+          transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+        }
+        .card:hover {
+          border-color: rgba(245,158,11,0.25);
+          box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(245,158,11,0.08);
+          transform: translateY(-3px);
         }
 
-        /* skill pill hover */
-        .skill-pill {
-          transition: background 0.2s, color 0.2s, transform 0.2s;
-        }
-        .skill-pill:hover {
-          background: rgba(245,158,11,0.15);
-          color: #fbbf24;
-          transform: translateY(-1px);
-        }
-
-        /* noise overlay for texture */
-        .noise::before {
-          content: '';
-          position: fixed;
-          inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-          pointer-events: none;
-          z-index: 0;
-          opacity: 0.4;
+        /* ── pill ── */
+        .pill {
+          display: inline-flex; align-items: center;
+          padding: 4px 12px; font-size: 11px; font-weight: 600;
+          background: rgba(245,158,11,0.08); color: #fbbf24;
+          border: 1px solid rgba(245,158,11,0.18); border-radius: 999px;
+          letter-spacing: 0.05em;
         }
 
-        /* active nav underline slide */
-        .nav-active::after {
-          content: '';
-          display: block;
-          height: 2px;
-          width: 100%;
-          background: linear-gradient(90deg, #f59e0b, #fcd34d);
-          border-radius: 2px;
-          margin-top: 2px;
-        }
-
-        /* card hover lift */
-        .card-lift {
-          transition: transform 0.3s cubic-bezier(.25,.8,.25,1), box-shadow 0.3s;
-        }
-        .card-lift:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        }
-
-        /* timeline line gradient */
-        .timeline-line {
-          background: linear-gradient(to bottom, #f59e0b, rgba(245,158,11,0.1));
-        }
-
-        /* form input */
-        .form-input {
-          background: rgba(255,255,255,0.03);
+        /* ── tag ── */
+        .tag {
+          display: inline-block; padding: 3px 10px;
+          font-size: 10px; font-weight: 600;
+          background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 10px;
-          color: #f5f5f5;
-          font-size: 13px;
-          padding: 10px 14px;
-          width: 100%;
-          outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s;
+          border-radius: 8px; color: #a3a3a3;
+          transition: background 0.2s, color 0.2s;
+          cursor: default;
         }
-        .form-input:focus {
-          border-color: rgba(245,158,11,0.5);
-          box-shadow: 0 0 0 3px rgba(245,158,11,0.08);
-        }
-        .form-input.error {
-          border-color: rgba(239,68,68,0.5);
-        }
-        .form-input::placeholder { color: #525252; }
+        .tag:hover { background: rgba(245,158,11,0.12); color: #fbbf24; }
 
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .float { animation: float 6s ease-in-out infinite; }
+        /* ── skill block ── */
+        .skill-group { border-radius: 16px; padding: 20px 24px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
 
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        /* ── project card ── */
+        .proj-card {
+          position: relative; overflow: hidden;
+          border-radius: 20px; padding: 28px;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.07);
+          transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+          display: flex; flex-direction: column; gap: 14px;
         }
-        .spin-slow { animation: spin-slow 20s linear infinite; }
+        .proj-card::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(245,158,11,0.5), transparent);
+          opacity: 0; transition: opacity 0.3s;
+        }
+        .proj-card:hover { border-color: rgba(245,158,11,0.2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .proj-card:hover::before { opacity: 1; }
+
+        /* ── timeline ── */
+        .tl-line { position: absolute; left: 23px; top: 48px; bottom: 0; width: 1px; background: linear-gradient(to bottom, rgba(245,158,11,0.6), transparent); }
+        .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: #0a0a0a; border: 2px solid #f59e0b; box-shadow: 0 0 10px rgba(245,158,11,0.4); flex-shrink: 0; margin-top: 4px; }
+
+        /* ── form ── */
+        .form-field {
+          width: 100%; padding: 12px 16px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.09);
+          border-radius: 12px; color: #f5f5f5;
+          font-size: 13px; outline: none;
+          transition: border-color 0.25s, box-shadow 0.25s;
+          font-family: inherit;
+        }
+        .form-field::placeholder { color: #4a4a4a; }
+        .form-field:focus { border-color: rgba(245,158,11,0.45); box-shadow: 0 0 0 3px rgba(245,158,11,0.07); }
+        .form-field.err { border-color: rgba(239,68,68,0.5); }
+
+        /* ── nav ── */
+        .nav-pill { padding: 6px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; transition: background 0.2s, color 0.2s; cursor: pointer; border: none; background: transparent; color: #737373; }
+        .nav-pill:hover { color: #e5e5e5; background: rgba(255,255,255,0.05); }
+        .nav-pill.active { color: #f59e0b; background: rgba(245,158,11,0.1); font-weight: 600; }
+
+        /* ── hero ── */
+        .hero-number { font-size: clamp(120px, 18vw, 220px); font-weight: 900; line-height: 0.85; letter-spacing: -0.06em; color: rgba(255,255,255,0.04); user-select: none; pointer-events: none; }
+
+        /* ── section label ── */
+        .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #f59e0b; }
+
+        /* ── glow ── */
+        .glow { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; }
+
+        /* ── stat ── */
+        .stat-item { padding: 28px 32px; border-right: 1px solid rgba(255,255,255,0.06); }
+        .stat-item:last-child { border-right: none; }
+
+        /* ── hover btn ── */
+        .btn-primary {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 11px 24px; font-size: 13px; font-weight: 700;
+          background: #f59e0b; color: #000; border: none; border-radius: 12px;
+          cursor: pointer; transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+          text-decoration: none;
+        }
+        .btn-primary:hover { background: #fbbf24; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,158,11,0.3); }
+
+        .btn-ghost {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 10px 22px; font-size: 13px; font-weight: 600;
+          background: rgba(255,255,255,0.04); color: #d4d4d4;
+          border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+          cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
+          text-decoration: none;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(245,158,11,0.25); transform: translateY(-2px); color: #fff; }
+
+        /* ── scroll indicator ── */
+        @keyframes scrollBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+        .scroll-bounce { animation: scrollBounce 1.5s ease-in-out infinite; }
+
+        /* ── cert badge ── */
+        .cert-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cert-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .cert-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+
+        @keyframes fadeInDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:none} }
+        .fade-in-down { animation: fadeInDown 0.25s ease forwards; }
       `}</style>
 
-      {/* ── BACK TO TOP ── */}
+      {/* ───────────────────────── BACK TO TOP ───────────────────────── */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed bottom-6 right-6 z-50 w-10 h-10 flex items-center justify-center bg-amber-500 hover:bg-amber-400 text-black rounded-full shadow-lg shadow-amber-500/25 transition-all duration-300 ${showBackToTop ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'}`}
         aria-label="Back to top"
+        style={{
+          position: 'fixed', bottom: 28, right: 28, zIndex: 60,
+          width: 44, height: 44, borderRadius: 12,
+          background: '#f59e0b', color: '#000', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(245,158,11,0.35)',
+          opacity: showTop ? 1 : 0, transform: showTop ? 'scale(1)' : 'scale(0.7)',
+          transition: 'opacity 0.3s, transform 0.3s', pointerEvents: showTop ? 'auto' : 'none',
+        }}
       >
         <ChevronUp size={18} strokeWidth={2.5} />
       </button>
 
-      {/* ── NAVBAR ── */}
-      <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isScrolled ? 'py-3 bg-[#080808]/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/50' : 'py-5 bg-transparent'}`}>
-        <div className="max-w-6xl mx-auto px-6 flex items-center justify-between">
+      {/* ───────────────────────── NAVBAR ───────────────────────────── */}
+      <header style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+        transition: 'all 0.4s',
+        padding: scrolled ? '10px 0' : '18px 0',
+        background: scrolled ? 'rgba(10,10,10,0.85)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
+      }}>
+        <div className="site-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Logo */}
-          <button
-            onClick={() => scrollTo('hero')}
-            className="group flex items-center space-x-2"
-          >
-            <span className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-black font-black text-sm">N</span>
-            <span className="font-bold text-sm tracking-wide text-neutral-200 group-hover:text-amber-400 transition-colors">
-              nafis<span className="text-amber-500">.</span>dev
-            </span>
+          <button onClick={() => goTo('hero')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 15, color: '#000' }}>N</div>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#e5e5e5', letterSpacing: '-0.01em' }}>Nafis<span style={{ color: '#f59e0b' }}>.</span></span>
           </button>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map(item => {
-              const target = item === 'Home' ? 'hero' : item.toLowerCase();
-              const active = activeSection === target;
+          <nav style={{ display: 'flex', gap: 4 }} className="hidden-mobile">
+            {nav.map(item => {
+              const id = item === 'Home' ? 'hero' : item.toLowerCase();
               return (
-                <button
-                  key={item}
-                  onClick={() => scrollTo(target)}
-                  className={`px-4 py-1.5 text-sm rounded-lg transition-all duration-200 ${active ? 'text-amber-400 bg-amber-500/10 font-semibold' : 'text-neutral-400 hover:text-neutral-100 hover:bg-white/5'}`}
-                >
-                  {item}
-                </button>
+                <button key={item} onClick={() => goTo(id)} className={`nav-pill ${active === id ? 'active' : ''}`}>{item}</button>
               );
             })}
           </nav>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={toggleTheme}
-              className="w-9 h-9 flex items-center justify-center rounded-lg text-neutral-400 hover:text-amber-400 hover:bg-white/5 transition-all"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={toggleTheme} style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#a3a3a3', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} aria-label="Toggle theme">
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
-            <a
-              href="mailto:mdnafissadiqueniloy@gmail.com"
-              className="hidden md:flex items-center space-x-1.5 px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold rounded-lg transition-all shadow-lg shadow-amber-500/20"
-            >
-              <Mail size={12} />
-              <span>Hire Me</span>
+            <a href="mailto:mdnafissadiqueniloy@gmail.com" className="btn-primary hidden-mobile" style={{ padding: '8px 18px', fontSize: 12 }}>
+              <Mail size={12} /> Hire Me
             </a>
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg text-neutral-400 hover:bg-white/5 transition-all"
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            <button onClick={() => setMenuOpen(!menuOpen)} className="show-mobile" style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#a3a3a3', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Menu">
+              {menuOpen ? <X size={16} /> : <Menu size={16} />}
             </button>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="fade-in-down site-wrap" style={{ paddingTop: 12, paddingBottom: 12 }}>
+            <div style={{ background: 'rgba(20,20,20,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '12px 8px', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {nav.map(item => {
+                const id = item === 'Home' ? 'hero' : item.toLowerCase();
+                return <button key={item} onClick={() => goTo(id)} className={`nav-pill ${active === id ? 'active' : ''}`} style={{ textAlign: 'left' }}>{item}</button>;
+              })}
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <a href="mailto:mdnafissadiqueniloy@gmail.com" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}><Mail size={13} /> Hire Me</a>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* ── MOBILE MENU ── */}
-      <div className={`fixed inset-0 z-30 md:hidden transition-all duration-300 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-[#080808]/95 backdrop-blur-2xl" onClick={() => setIsMenuOpen(false)} />
-        <div className={`absolute top-[68px] left-4 right-4 glass p-6 flex flex-col space-y-1 transition-all duration-300 ${isMenuOpen ? 'translate-y-0' : '-translate-y-4'}`}>
-          {navLinks.map(item => {
-            const target = item === 'Home' ? 'hero' : item.toLowerCase();
-            return (
-              <button key={item} onClick={() => scrollTo(target)} className={`text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${activeSection === target ? 'text-amber-400 bg-amber-500/10' : 'text-neutral-300 hover:bg-white/5'}`}>
-                {item}
-              </button>
-            );
-          })}
-          <div className="pt-3 border-t border-white/5">
-            <a href="mailto:mdnafissadiqueniloy@gmail.com" className="flex items-center justify-center space-x-2 py-3 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold rounded-xl transition-all">
-              <Mail size={14} /><span>Hire Me</span>
-            </a>
-          </div>
-        </div>
-      </div>
+      <style>{`
+        @media(min-width:769px){ .hidden-mobile{ display:flex !important; } .show-mobile{ display:none !important; } }
+        @media(max-width:768px){ .hidden-mobile{ display:none !important; } .show-mobile{ display:flex !important; } }
+      `}</style>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          HERO SECTION
-      ══════════════════════════════════════════════════════════════════ */}
-      <section id="hero" ref={sectionsRef.hero} className="relative min-h-screen flex items-center pt-24 pb-16 overflow-hidden">
-        {/* Ambient blobs */}
-        <div className="glow-amber w-[600px] h-[600px] top-[-100px] right-[-150px] opacity-60" />
-        <div className="glow-amber w-[400px] h-[400px] bottom-[-50px] left-[-100px] opacity-40" />
+      {/* ═══════════════════════════════ HERO ═══════════════════════════ */}
+      <section id="hero" ref={sections.hero} style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden', paddingTop: 100, paddingBottom: 60 }}>
 
-        <div className="max-w-6xl mx-auto px-6 w-full relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        {/* Background decorations */}
+        <div className="glow" style={{ width: 700, height: 700, top: -200, right: -200, background: 'rgba(245,158,11,0.06)' }} />
+        <div className="glow" style={{ width: 400, height: 400, bottom: 0, left: -100, background: 'rgba(245,158,11,0.04)' }} />
 
-            {/* ── Left text column ── */}
-            <div className="space-y-8">
-              {/* Badge */}
-              <FadeUp delay={0}>
-                <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                  <Sparkles size={12} />
-                  <span>Certified Scrum Product Owner (CSPO)® · ID 2196763</span>
-                </div>
-              </FadeUp>
+        {/* Watermark number */}
+        <div className="hero-number" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', userSelect: 'none', lineHeight: 1 }}>01</div>
 
-              {/* Name & Typewriter */}
-              <FadeUp delay={100}>
-                <div className="space-y-3">
-                  <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none">
-                    <span className="text-white">Nafis</span>
-                    <br />
-                    <span className="text-white">Sadique</span>
-                    <br />
-                    <span className="text-neutral-500">Niloy</span>
-                  </h1>
-                  <p className="text-lg sm:text-xl text-neutral-300 font-medium pt-1">
-                    <Typewriter words={['Project Coordinator', 'Product Owner', 'Agile Practitioner', 'Delivery Specialist']} />
-                  </p>
-                </div>
-              </FadeUp>
-
-              {/* Bio */}
-              <FadeUp delay={200}>
-                <p className="text-sm text-neutral-400 leading-relaxed max-w-md">
-                  Computer Science graduate and CSPO® managing software delivery and Agile execution at ATI Limited. Bridging business needs and engineering teams across ERP, government, and enterprise platforms.
-                </p>
-              </FadeUp>
-
-              {/* CTA buttons */}
-              <FadeUp delay={300}>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => scrollTo('projects')}
-                    className="group inline-flex items-center space-x-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5"
-                  >
-                    <span>View Projects</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  <a
-                    href="/CV of Md. Nafis Sadique Niloy.pdf"
-                    download="CV_Md_Nafis_Sadique_Niloy.pdf"
-                    className="inline-flex items-center space-x-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-amber-500/30 text-white text-sm font-medium rounded-xl transition-all hover:-translate-y-0.5"
-                  >
-                    <Download size={13} />
-                    <span>Download CV</span>
-                  </a>
-                  <a
-                    href="/linkedin.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 px-5 py-2.5 bg-white/3 hover:bg-white/8 border border-white/6 hover:border-white/12 text-neutral-300 text-sm font-medium rounded-xl transition-all hover:-translate-y-0.5"
-                  >
-                    <FileText size={13} />
-                    <span>LinkedIn PDF</span>
-                  </a>
-                </div>
-              </FadeUp>
-
-              {/* Social icons + location */}
-              <FadeUp delay={400}>
-                <div className="flex items-center space-x-4">
-                  <a href="https://github.com/Nafis588" target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 hover:border-amber-500/30 text-neutral-400 hover:text-amber-400 transition-all" aria-label="GitHub">
-                    <Github size={16} />
-                  </a>
-                  <a href="https://www.linkedin.com/in/nafissn/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 hover:border-amber-500/30 text-neutral-400 hover:text-amber-400 transition-all" aria-label="LinkedIn">
-                    <Linkedin size={16} />
-                  </a>
-                  <a href="mailto:mdnafissadiqueniloy@gmail.com" className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 hover:border-amber-500/30 text-neutral-400 hover:text-amber-400 transition-all" aria-label="Email">
-                    <Mail size={16} />
-                  </a>
-                  <div className="flex items-center space-x-1.5 text-xs text-neutral-500 pl-2 border-l border-white/8">
-                    <MapPin size={11} className="text-amber-500" />
-                    <span>Dhaka, BD</span>
-                  </div>
-                </div>
-              </FadeUp>
+        <div className="site-wrap">
+          {/* ── Top badge ── */}
+          <Reveal delay={0}>
+            <div style={{ marginBottom: 32 }}>
+              <span className="pill"><Sparkles size={11} style={{ marginRight: 6 }} />CSPO® · Credential ID 2196763 · Scrum Alliance</span>
             </div>
+          </Reveal>
 
-            {/* ── Right bento column ── */}
-            <FadeUp delay={200} className="grid grid-cols-2 gap-4">
-              {/* Big highlight card */}
-              <div className="glass card-lift col-span-2 p-6 flex items-start space-x-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
-                  <Award size={22} className="text-amber-400" />
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase tracking-widest text-amber-500 font-semibold">Top Credential</span>
-                  <h3 className="text-sm font-bold text-white mt-0.5">CSPO® — Certified Scrum Product Owner</h3>
-                  <p className="text-xs text-neutral-400 mt-1">Scrum Alliance · Credential ID: 2196763 · Jun 2026</p>
-                  <a href="https://bcert.me/siupsirvv" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 text-[10px] text-amber-500 hover:text-amber-300 mt-2 transition-colors">
-                    <span>Verify Credential</span><ExternalLink size={9} />
-                  </a>
-                </div>
-              </div>
+          {/* ── Name block ── */}
+          <Reveal delay={80}>
+            <div style={{ marginBottom: 20 }}>
+              <h1 style={{ fontSize: 'clamp(48px, 8vw, 96px)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.04em', color: '#fff' }}>
+                Md. Nafis<br />
+                <span style={{ WebkitTextStroke: '1px rgba(255,255,255,0.25)', color: 'transparent' }}>Sadique</span><br />
+                <span style={{ color: '#f59e0b' }}>Niloy</span>
+              </h1>
+            </div>
+          </Reveal>
 
-              {/* Current role */}
-              <div className="glass card-lift p-5 flex flex-col justify-between">
-                <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-3">
-                  <Briefcase size={16} className="text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-white">Trainee Project Coordinator</h3>
-                  <p className="text-[10px] text-neutral-400 mt-0.5">ATI Limited</p>
-                  <span className="inline-block mt-2 text-[9px] px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full">● Active · Jan 2026</span>
-                </div>
-              </div>
+          {/* ── Typewriter subtitle ── */}
+          <Reveal delay={160}>
+            <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', fontWeight: 500, color: '#a3a3a3', marginBottom: 24, letterSpacing: '-0.01em' }}>
+              <Typewriter words={['Project Coordinator', 'Certified Product Owner', 'Agile Practitioner', 'Delivery Specialist']} />
+            </p>
+          </Reveal>
 
-              {/* Education */}
-              <div className="glass card-lift p-5 flex flex-col justify-between">
-                <div className="w-9 h-9 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-3">
-                  <GraduationCap size={16} className="text-violet-400" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-white">B.Sc. Computer Science</h3>
-                  <p className="text-[10px] text-neutral-400 mt-0.5">BRAC University · CGPA 3.27</p>
-                  <span className="inline-block mt-2 text-[9px] px-2 py-0.5 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-full">Graduated Sep 2025</span>
-                </div>
-              </div>
+          {/* ── Bio line ── */}
+          <Reveal delay={220}>
+            <p style={{ fontSize: 14, color: '#737373', lineHeight: 1.7, maxWidth: 520, marginBottom: 36 }}>
+              Computer Science graduate and CSPO® managing ERP, government, and enterprise software delivery at ATI Limited — bridging business needs with engineering execution.
+            </p>
+          </Reveal>
 
-              {/* Club leadership */}
-              <div className="glass card-lift col-span-2 p-5 flex items-center space-x-4">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <Users size={16} className="text-emerald-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xs font-bold text-white">Former President · BRAC University Computer Club</h3>
-                  <p className="text-[10px] text-neutral-400 mt-0.5">Led 500+ members · Founded R&amp;D Dept · Directed IntraHacktive 1.0 hackathon</p>
-                </div>
-                <span className="text-[9px] text-neutral-500 whitespace-nowrap">Oct 2023 – Dec 2024</span>
+          {/* ── CTA row ── */}
+          <Reveal delay={290}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 48 }}>
+              <button className="btn-primary" onClick={() => goTo('projects')}>
+                View Projects <ArrowRight size={14} />
+              </button>
+              <a href="/CV of Md. Nafis Sadique Niloy.pdf" download="CV_Md_Nafis_Sadique_Niloy.pdf" className="btn-ghost">
+                <Download size={13} /> Download CV
+              </a>
+              <a href="/linkedin.pdf" target="_blank" rel="noopener noreferrer" className="btn-ghost">
+                <FileText size={13} /> LinkedIn PDF
+              </a>
+            </div>
+          </Reveal>
+
+          {/* ── Social row ── */}
+          <Reveal delay={350}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {[
+                { icon: Github, href: 'https://github.com/Nafis588', label: 'GitHub' },
+                { icon: Linkedin, href: 'https://www.linkedin.com/in/nafissn/', label: 'LinkedIn' },
+                { icon: Mail, href: 'mailto:mdnafissadiqueniloy@gmail.com', label: 'Email' },
+              ].map(({ icon: Icon, href, label }) => (
+                <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" aria-label={label}
+                  style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#737373', transition: 'all 0.2s', textDecoration: 'none' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#f59e0b'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(245,158,11,0.3)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#737373'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
+                  <Icon size={16} />
+                </a>
+              ))}
+              <div style={{ height: 20, width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#525252', fontSize: 12 }}>
+                <MapPin size={11} style={{ color: '#f59e0b' }} /> Dhaka, Bangladesh
               </div>
-            </FadeUp>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Scroll indicator */}
+        <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 10, color: '#404040', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Scroll</span>
+          <div className="scroll-bounce" style={{ width: 1, height: 40, background: 'linear-gradient(to bottom, #f59e0b, transparent)' }} />
+        </div>
+      </section>
+
+      {/* ═══════════════════════ STATS STRIP ═══════════════════════════ */}
+      <section style={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.015)' }}>
+        <div className="site-wrap">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+            {[
+              { value: 5, suffix: '+', label: 'Enterprise Projects', icon: Briefcase },
+              { value: 4, suffix: '', label: 'Certifications', icon: Award },
+              { value: 500, suffix: '+', label: 'Club Members Led', icon: Users },
+              { value: 3, suffix: '+', label: 'Years in Tech', icon: Calendar },
+            ].map(({ value, suffix, label, icon: Icon }, i) => (
+              <Reveal key={label} delay={i * 80}>
+                <div className="stat-item" style={{ textAlign: 'center', padding: '32px 24px' }}>
+                  <Icon size={18} style={{ color: '#f59e0b', marginBottom: 10, display: 'block', margin: '0 auto 10px' }} />
+                  <div style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                    <Counter to={value} suffix={suffix} />
+                  </div>
+                  <div style={{ fontSize: 11, color: '#525252', marginTop: 6, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          ABOUT SECTION
-      ══════════════════════════════════════════════════════════════════ */}
-      <section id="about" ref={sectionsRef.about} className="py-24 relative">
-        <div className="max-w-6xl mx-auto px-6">
+      {/* ═══════════════════════ ABOUT SECTION ════════════════════════ */}
+      <section id="about" ref={sections.about} style={{ padding: '100px 0', position: 'relative' }}>
+        <div className="glow" style={{ width: 500, height: 500, top: 0, left: -200, background: 'rgba(245,158,11,0.04)' }} />
 
-          <FadeUp className="mb-14 text-center">
-            <span className="text-xs uppercase tracking-widest text-amber-500 font-bold">About Me</span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white mt-2">Career Objective &amp; Competencies</h2>
-            <div className="w-16 h-0.5 bg-gradient-to-r from-amber-500 to-amber-300 rounded-full mx-auto mt-4" />
-          </FadeUp>
+        <div className="site-wrap">
+          {/* Section header */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 64, flexWrap: 'wrap', gap: 20 }}>
+            <Reveal>
+              <div>
+                <p className="section-label" style={{ marginBottom: 12 }}>About Me</p>
+                <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>
+                  Career Objective<br />& Competencies
+                </h2>
+                <div className="section-line" style={{ marginTop: 16 }} />
+              </div>
+            </Reveal>
+            <Reveal delay={100}>
+              <div style={{ maxWidth: 380 }}>
+                <p style={{ fontSize: 13, color: '#737373', lineHeight: 1.8 }}>
+                  Goal-oriented Computer Science graduate and Certified Scrum Product Owner® working as a Project Coordinator. Hands-on experience managing software delivery, requirement elicitation, and Agile execution across ERP and government-sector projects.
+                </p>
+              </div>
+            </Reveal>
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* ── Two-column: Bio + Skills ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
 
             {/* Bio card */}
-            <FadeUp delay={0} className="lg:col-span-5">
-              <div className="glass card-lift h-full p-7 flex flex-col space-y-5">
-                <div>
-                  <h3 className="text-base font-bold text-white mb-3">Who I Am</h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed">
-                    Goal-oriented Computer Science graduate and Certified Scrum Product Owner® working as a Project Coordinator at ATI Limited. Hands-on experience managing software delivery, requirement elicitation, and Agile execution across ERP and government-sector projects.
-                  </p>
-                </div>
-                <p className="text-sm text-neutral-400 leading-relaxed">
-                  Core strength: translating business needs into detailed technical requirements, aligning cross-functional teams (Design / Engineering / QA), and ensuring predictability in product releases.
+            <Reveal from="left">
+              <div className="card" style={{ padding: '32px 36px', height: '100%' }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 20 }}>Who I Am</h3>
+
+                <p style={{ fontSize: 13, color: '#737373', lineHeight: 1.85, marginBottom: 20 }}>
+                  My core strength lies in translating business needs into detailed technical requirements, aligning cross-functional teams (Design / Engineering / QA), and ensuring predictability in product releases.
                 </p>
-                <div className="grid grid-cols-2 gap-3 pt-2">
+
+                <p style={{ fontSize: 13, color: '#737373', lineHeight: 1.85, marginBottom: 28 }}>
+                  I look to leverage my skills in a Project or Product Management role to drive delivery efficiency and business value across enterprise and government clients.
+                </p>
+
+                {/* Quick facts grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   {[
-                    { icon: MapPin, label: 'Dhaka, Bangladesh', color: 'text-amber-400' },
-                    { icon: Briefcase, label: 'Project · Product Delivery', color: 'text-blue-400' },
-                    { icon: Calendar, label: 'Jan 2026 – Present', color: 'text-emerald-400' },
-                    { icon: CheckCircle, label: 'CSPO® Certified', color: 'text-violet-400' },
-                  ].map(({ icon: Icon, label, color }) => (
-                    <div key={label} className="flex items-center space-x-2">
-                      <Icon size={13} className={color} />
-                      <span className="text-[11px] text-neutral-300">{label}</span>
+                    { icon: MapPin, text: 'Dhaka, Bangladesh', color: '#f59e0b' },
+                    { icon: Briefcase, text: 'ATI Limited', color: '#60a5fa' },
+                    { icon: CheckCircle, text: 'CSPO® Certified', color: '#34d399' },
+                    { icon: GraduationCap, text: 'BRAC University', color: '#a78bfa' },
+                  ].map(({ icon: Icon, text, color }) => (
+                    <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Icon size={13} style={{ color, flexShrink: 0 }} />
+                      <span style={{ fontSize: 11, color: '#a3a3a3', fontWeight: 600 }}>{text}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-            </FadeUp>
 
-            {/* Skills grid */}
-            <FadeUp delay={100} className="lg:col-span-7">
-              <div className="glass card-lift h-full p-7 space-y-6">
-                <h3 className="text-base font-bold text-white">Skills Portfolio</h3>
-
-                {[
-                  {
-                    category: 'Project Management & Agile',
-                    color: 'text-amber-400',
-                    bg: 'bg-amber-500/8',
-                    border: 'border-amber-500/15',
-                    skills: ['Sprint Planning', 'Backlog Grooming', 'UAT Facilitation', 'Release Readiness', 'Cross-functional Coordination', 'Agile / Hybrid SDLC'],
-                  },
-                  {
-                    category: 'Requirements & Business Analysis',
-                    color: 'text-blue-400',
-                    bg: 'bg-blue-500/8',
-                    border: 'border-blue-500/15',
-                    skills: ['Requirement Elicitation', 'User Story Mapping', 'BRD / SRS Writing', 'Acceptance Criteria', 'Workflow Analysis', 'Prioritization Workshops'],
-                  },
-                  {
-                    category: 'Tools & Technical Stack',
-                    color: 'text-emerald-400',
-                    bg: 'bg-emerald-500/8',
-                    border: 'border-emerald-500/15',
-                    skills: ['Jira', 'Notion', 'Slack', 'GitHub', 'React.js', 'TypeScript', 'Node.js', 'MongoDB', 'HTML5 & CSS3'],
-                  },
-                ].map(({ category, color, bg, border, skills }) => (
-                  <div key={category}>
-                    <h4 className={`text-[11px] font-bold uppercase tracking-wider ${color} mb-2.5`}>{category}</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {skills.map(s => (
-                        <span key={s} className={`skill-pill text-[11px] px-2.5 py-1 ${bg} border ${border} text-neutral-300 rounded-lg cursor-default`}>{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </FadeUp>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════════
-          PROJECTS SECTION
-      ══════════════════════════════════════════════════════════════════ */}
-      <section id="projects" ref={sectionsRef.projects} className="py-24 relative">
-        {/* top separator */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
-
-        <div className="max-w-6xl mx-auto px-6">
-
-          <FadeUp className="mb-14 text-center">
-            <span className="text-xs uppercase tracking-widest text-amber-500 font-bold">Portfolio</span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white mt-2">Coordinated Projects</h2>
-            <div className="w-16 h-0.5 bg-gradient-to-r from-amber-500 to-amber-300 rounded-full mx-auto mt-4" />
-          </FadeUp>
-
-          {/* Enterprise grid */}
-          <div className="mb-12">
-            <FadeUp>
-              <div className="flex items-center space-x-2 mb-6">
-                <div className="w-1 h-5 bg-amber-500 rounded-full" />
-                <h3 className="text-sm font-bold text-neutral-200">Enterprise Delivery — ATI Limited</h3>
-              </div>
-            </FadeUp>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {enterpriseProjects.map((proj, idx) => (
-                <FadeUp key={idx} delay={idx * 60}>
-                  <div className={`glass card-lift h-full p-6 flex flex-col justify-between group relative overflow-hidden`}>
-                    {/* gradient accent top bar */}
-                    <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${proj.accent} opacity-80 group-hover:opacity-100 transition-opacity`} />
-                    <div>
-                      <span className="text-[9px] uppercase font-black tracking-widest px-2 py-1 bg-amber-500/8 text-amber-400 border border-amber-500/15 rounded-md">
-                        {proj.client}
-                      </span>
-                      <h4 className="text-sm font-bold text-white mt-3 mb-2">{proj.title}</h4>
-                      <p className="text-[12px] text-neutral-400 leading-relaxed">{proj.desc}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-white/5">
-                      {proj.tags.map(tag => (
-                        <span key={tag} className="text-[9px] px-2 py-0.5 bg-white/4 border border-white/8 text-neutral-400 rounded-md">{tag}</span>
-                      ))}
-                    </div>
-                  </div>
-                </FadeUp>
-              ))}
-            </div>
-          </div>
-
-          {/* Academic grid */}
-          <div>
-            <FadeUp>
-              <div className="flex items-center space-x-2 mb-6">
-                <div className="w-1 h-5 bg-violet-500 rounded-full" />
-                <h3 className="text-sm font-bold text-neutral-200">Academic Engineering</h3>
-              </div>
-            </FadeUp>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {academicProjects.map((proj, idx) => (
-                <FadeUp key={idx} delay={idx * 80}>
-                  <div className="glass card-lift h-full p-6 flex flex-col justify-between group relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500/40 to-violet-600/5" />
-                    <div>
-                      <span className="text-[9px] uppercase font-black tracking-widest px-2 py-1 bg-violet-500/8 text-violet-400 border border-violet-500/15 rounded-md">
-                        Academic Project
-                      </span>
-                      <h4 className="text-sm font-bold text-white mt-3 mb-2">{proj.title}</h4>
-                      <p className="text-[12px] text-neutral-400 leading-relaxed">{proj.desc}</p>
-                    </div>
-                    <div className="flex items-center space-x-2 mt-4 pt-4 border-t border-white/5">
-                      <Code size={11} className="text-amber-500 flex-shrink-0" />
-                      <span className="text-[10px] text-neutral-500">{proj.tech}</span>
-                    </div>
-                  </div>
-                </FadeUp>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════════
-          EXPERIENCE SECTION
-      ══════════════════════════════════════════════════════════════════ */}
-      <section id="experience" ref={sectionsRef.experience} className="py-24 relative">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
-
-        <div className="max-w-6xl mx-auto px-6">
-
-          <FadeUp className="mb-14 text-center">
-            <span className="text-xs uppercase tracking-widest text-amber-500 font-bold">My Journey</span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white mt-2">Experience &amp; Credentials</h2>
-            <div className="w-16 h-0.5 bg-gradient-to-r from-amber-500 to-amber-300 rounded-full mx-auto mt-4" />
-          </FadeUp>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-            {/* ── Work Experience Timeline ── */}
-            <div className="lg:col-span-7 space-y-0">
-              <FadeUp>
-                <div className="flex items-center space-x-2 mb-8">
-                  <div className="w-1 h-5 bg-amber-500 rounded-full" />
-                  <h3 className="text-sm font-bold text-neutral-200">Work Experience</h3>
+                {/* Availability badge */}
+                <div style={{ marginTop: 28, padding: '10px 16px', background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: '#34d399', fontWeight: 600 }}>Available for new opportunities</span>
                 </div>
-              </FadeUp>
+              </div>
+            </Reveal>
 
-              <div className="relative">
-                {/* Timeline vertical line */}
-                <div className="absolute left-4 top-2 bottom-2 w-px timeline-line" />
+            {/* Skills */}
+            <Reveal from="right" delay={80}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Skills Portfolio</h3>
+                {Object.entries(skills).map(([cat, list], ci) => {
+                  const colors = ['#f59e0b', '#60a5fa', '#a78bfa'];
+                  return (
+                    <div key={cat} className="skill-group">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <div style={{ width: 3, height: 14, borderRadius: 2, background: colors[ci] }} />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: colors[ci], textTransform: 'uppercase', letterSpacing: '0.08em' }}>{cat}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {list.map(s => <span key={s} className="tag">{s}</span>)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
 
-                <div className="space-y-10 pl-12">
+      {/* ═══════════════════════ PROJECTS ══════════════════════════════ */}
+      <section id="projects" ref={sections.projects} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(255,255,255,0.008)' }}>
+        <div className="glow" style={{ width: 600, height: 600, top: 0, right: -200, background: 'rgba(245,158,11,0.04)' }} />
+
+        <div className="site-wrap">
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 56, flexWrap: 'wrap', gap: 20 }}>
+            <Reveal>
+              <div>
+                <p className="section-label" style={{ marginBottom: 12 }}>Portfolio</p>
+                <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>
+                  Coordinated<br />Projects
+                </h2>
+                <div className="section-line" style={{ marginTop: 16 }} />
+              </div>
+            </Reveal>
+            <Reveal delay={80}>
+              <div style={{ padding: '8px 14px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Briefcase size={13} style={{ color: '#f59e0b' }} />
+                <span style={{ fontSize: 12, color: '#fbbf24', fontWeight: 600 }}>ATI Limited — Enterprise Delivery</span>
+              </div>
+            </Reveal>
+          </div>
+
+          {/* ── Feature card (first) + grid ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20, marginBottom: 20 }}>
+
+            {/* Featured project */}
+            <div style={{ gridColumn: 'span 5' }}>
+              <Reveal from="left" style={{ height: '100%' }}>
+                <div className="proj-card" style={{ height: '100%' }}>
+                  <span className="pill" style={{ alignSelf: 'flex-start' }}>Bangladesh Navy</span>
+                  <h3 style={{ fontSize: 20, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>Budget Management System</h3>
+                  <p style={{ fontSize: 12, color: '#737373', lineHeight: 1.8 }}>
+                    Led requirement elicitation and delivery coordination of budget workflow modules with engineering teams. Acted as stakeholder liaison to lock scope and manage change requests across phased rollout.
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 'auto' }}>
+                    {['Scope Management', 'Backlog Tracking', 'Agile Execution'].map(t => <span key={t} className="tag">{t}</span>)}
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+
+            {/* Right side 2×2 grid */}
+            <div style={{ gridColumn: 'span 7', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              {[
+                { title: 'NATDOC Website (CMS)', client: 'Bangladesh Navy', tags: ['SRS', 'CMS', 'Requirement Eng.'], desc: 'On-site requirement validation, finalized SRS for content structures and approval workflows.' },
+                { title: 'ERP Modules (HR, Payroll)', client: 'Jamuna Oil Co.', tags: ['Gap Analysis', 'ERP', 'Timeline Tracking'], desc: 'Gap analysis and requirement detailing for HR and Payroll ERP modules.' },
+                { title: 'University CMS Portal', client: 'Bangladesh Maritime Uni.', tags: ['Content Migration', 'CMS', 'Issue Triage'], desc: 'Coordinated full redesign, content migration, and rollout workflows.' },
+                { title: 'Healthcare Platform', client: 'Ghana Client', tags: ['Multi-Tenant', 'Cross-Border'], desc: 'Multi-tenant platform delivery across multiple hospital systems, cross-border coordination.' },
+              ].map((p, i) => (
+                <Reveal key={p.title} delay={i * 60}>
+                  <div className="proj-card" style={{ height: '100%' }}>
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)', padding: '3px 8px', borderRadius: 6, alignSelf: 'flex-start', display: 'inline-block' }}>{p.client}</span>
+                    <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{p.title}</h4>
+                    <p style={{ fontSize: 11, color: '#737373', lineHeight: 1.7, flexGrow: 1 }}>{p.desc}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
+                      {p.tags.map(t => <span key={t} className="tag" style={{ fontSize: 9 }}>{t}</span>)}
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+
+          {/* Academic row */}
+          <div style={{ marginTop: 40 }}>
+            <Reveal>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+                <GraduationCap size={15} style={{ color: '#a78bfa' }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Academic Engineering</span>
+              </div>
+            </Reveal>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+              {[
+                { title: 'USIS 3.0 Student Portal', desc: 'Student portal with schedule planning and course selection optimization. Built to demonstrate full-stack architectural integration.', tech: 'React · TypeScript · MongoDB · Tailwind' },
+                { title: 'BRACU OCA System', desc: 'Club activity tracker and event approval workflow automation for the BRAC University Office of Co-Curricular Activities.', tech: 'Next.js · React · MongoDB' },
+              ].map((p, i) => (
+                <Reveal key={p.title} delay={i * 80}>
+                  <div className="proj-card">
+                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a78bfa', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.18)', padding: '3px 8px', borderRadius: 6, display: 'inline-block' }}>Academic</span>
+                    <h4 style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{p.title}</h4>
+                    <p style={{ fontSize: 12, color: '#737373', lineHeight: 1.7 }}>{p.desc}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <Code size={11} style={{ color: '#f59e0b' }} />
+                      <span style={{ fontSize: 10, color: '#525252' }}>{p.tech}</span>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════ EXPERIENCE ════════════════════════════ */}
+      <section id="experience" ref={sections.experience} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
+
+        <div className="site-wrap">
+          <Reveal style={{ marginBottom: 64 }}>
+            <p className="section-label" style={{ marginBottom: 12 }}>My Journey</p>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>
+              Experience &<br />Credentials
+            </h2>
+            <div className="section-line" style={{ marginTop: 16 }} />
+          </Reveal>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 32 }}>
+
+            {/* ── LEFT: Work + Education ── */}
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 28 }}>Work Experience</p>
+
+              {/* Timeline */}
+              <div style={{ position: 'relative' }}>
+                <div className="tl-line" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 32, paddingLeft: 52 }}>
                   {[
                     {
-                      date: 'Jan 2026 – Present',
-                      role: 'Trainee Project Coordinator',
-                      company: 'ATI Limited',
-                      status: 'Current',
-                      statusColor: 'text-green-400 bg-green-500/10 border-green-500/20',
-                      points: [
-                        'Coordinating delivery of multiple ERP, government, and web platform projects across education, energy, and public-sector clients.',
-                        'Supporting requirement engineering (BRD/SRS inputs), sprint tracking, cross-team alignment, and delivery follow-ups with Dev/QA/Design.',
-                        'Assisting UAT coordination, release readiness, documentation, and stakeholder communication for ongoing implementations.',
-                      ],
+                      date: 'Jan 2026 – Present', role: 'Trainee Project Coordinator', company: 'ATI Limited',
+                      status: 'Active', statusColor: '#34d399', statusBg: 'rgba(52,211,153,0.08)', statusBorder: 'rgba(52,211,153,0.2)',
+                      points: ['Coordinating delivery of ERP, government, and web platform projects.', 'Supporting BRD/SRS inputs, sprint tracking, cross-team alignment with Dev/QA/Design.', 'Assisting UAT, release readiness, and stakeholder communication.'],
                     },
                     {
-                      date: 'Oct 2025 – Dec 2025',
-                      role: 'Project Management Intern',
-                      company: 'ATI Limited',
-                      status: 'Completed',
-                      statusColor: 'text-neutral-400 bg-white/5 border-white/10',
-                      points: [
-                        'Supported requirement elicitation, backlog refinement, sprint review preparation, and coordinating task boards.',
-                        'Facilitated team syncs and developer follow-ups to maintain sprint goals and lock deliverables.',
-                      ],
+                      date: 'Oct 2025 – Dec 2025', role: 'Project Management Intern', company: 'ATI Limited',
+                      status: 'Completed', statusColor: '#737373', statusBg: 'rgba(115,115,115,0.08)', statusBorder: 'rgba(115,115,115,0.2)',
+                      points: ['Supported requirement elicitation, backlog refinement, and sprint reviews.', 'Facilitated developer follow-ups to maintain sprint goals.'],
                     },
-                  ].map((exp, idx) => (
-                    <FadeUp key={idx} delay={idx * 100}>
-                      <div className="relative">
-                        {/* Timeline node */}
-                        <div className="absolute -left-[37px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#080808] border-2 border-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
-                        <div className="glass card-lift p-6">
-                          <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                  ].map((exp, ei) => (
+                    <Reveal key={ei} delay={ei * 100}>
+                      <div style={{ position: 'relative' }}>
+                        {/* Timeline dot */}
+                        <div className="tl-dot" style={{ position: 'absolute', left: -42, top: 6 }} />
+
+                        <div className="card" style={{ padding: '20px 24px' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
                             <div>
-                              <h3 className="text-sm font-bold text-white">{exp.role}</h3>
-                              <p className="text-xs text-amber-400 mt-0.5">{exp.company}</p>
+                              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{exp.role}</h3>
+                              <p style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>{exp.company}</p>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${exp.statusColor}`}>{exp.status}</span>
-                              <span className="text-[10px] text-neutral-500">{exp.date}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                              <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: exp.statusBg, color: exp.statusColor, border: `1px solid ${exp.statusBorder}` }}>{exp.status}</span>
+                              <span style={{ fontSize: 10, color: '#525252' }}>{exp.date}</span>
                             </div>
                           </div>
-                          <ul className="space-y-2">
+                          <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {exp.points.map((pt, pi) => (
-                              <li key={pi} className="flex items-start space-x-2.5">
-                                <span className="w-1 h-1 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
-                                <span className="text-[12px] text-neutral-400 leading-relaxed">{pt}</span>
+                              <li key={pi} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#f59e0b', flexShrink: 0, marginTop: 6 }} />
+                                <span style={{ fontSize: 11, color: '#737373', lineHeight: 1.7 }}>{pt}</span>
                               </li>
                             ))}
                           </ul>
                         </div>
                       </div>
-                    </FadeUp>
+                    </Reveal>
                   ))}
                 </div>
               </div>
 
-              {/* Education card */}
-              <FadeUp delay={200} className="mt-8">
-                <div className="glass card-lift p-6 flex items-center space-x-5">
-                  <div className="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
-                    <GraduationCap size={22} className="text-violet-400" />
+              {/* Education */}
+              <Reveal delay={200} style={{ marginTop: 32 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Education</p>
+                <div className="card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <GraduationCap size={20} style={{ color: '#a78bfa' }} />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-white">B.Sc. in Computer Science</h3>
-                    <p className="text-xs text-neutral-400 mt-0.5">BRAC University</p>
-                    <p className="text-[10px] text-neutral-500 mt-0.5">CGPA: 3.27 / 4.00 &nbsp;·&nbsp; Jun 2021 – Sep 2025</p>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>B.Sc. in Computer Science</h4>
+                    <p style={{ fontSize: 12, color: '#a3a3a3', marginTop: 2 }}>BRAC University</p>
+                    <p style={{ fontSize: 11, color: '#525252', marginTop: 2 }}>CGPA: 3.27/4.00 · Jun 2021 – Sep 2025</p>
                   </div>
-                  <span className="text-[9px] px-2.5 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-full font-semibold">Completed</span>
+                  <span style={{ fontSize: 9, padding: '4px 10px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.2)', color: '#a78bfa', borderRadius: 999, fontWeight: 700 }}>Done</span>
                 </div>
-              </FadeUp>
+              </Reveal>
             </div>
 
-            {/* ── Right column: Leadership + Certifications ── */}
-            <div className="lg:col-span-5 space-y-6">
+            {/* ── RIGHT: Leadership + Certifications ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
               {/* Leadership */}
-              <FadeUp>
-                <div className="glass card-lift p-6 space-y-4">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <div className="w-1 h-5 bg-emerald-500 rounded-full" />
-                    <h3 className="text-sm font-bold text-neutral-200">Leadership</h3>
+              <Reveal from="right">
+                <div className="card" style={{ padding: '24px 28px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                    <Users size={16} style={{ color: '#34d399' }} />
+                    <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Leadership</h3>
                   </div>
                   {[
                     { role: 'President', org: 'BRAC University Computer Club (BUCC)', period: 'Oct 2023 – Dec 2024' },
                     { role: 'Senior Executive, HR', org: 'BRAC University Computer Club (BUCC)', period: 'Jun 2022 – Oct 2023' },
-                  ].map((lead, li) => (
-                    <div key={li} className="p-4 rounded-xl bg-white/2 border border-white/5 space-y-0.5">
-                      <h4 className="text-xs font-bold text-white">{lead.role}</h4>
-                      <p className="text-[10px] text-emerald-400">{lead.org}</p>
-                      <p className="text-[9px] text-neutral-500">{lead.period}</p>
+                  ].map((l, li) => (
+                    <div key={li} style={{ padding: '14px 0', borderBottom: li === 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                      <h4 style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{l.role}</h4>
+                      <p style={{ fontSize: 11, color: '#34d399', fontWeight: 600, marginBottom: 2 }}>{l.org}</p>
+                      <p style={{ fontSize: 10, color: '#525252' }}>{l.period}</p>
                     </div>
                   ))}
-                  <p className="text-[11px] text-neutral-400 leading-relaxed pt-1 border-t border-white/5">
-                    Led a tech org with <strong className="text-neutral-200">500+ active members</strong>. Founded the R&amp;D Department and Web &amp; App Team. Directed the end-to-end execution of the <strong className="text-neutral-200">IntraHacktive 1.0</strong> hackathon.
+                  <p style={{ fontSize: 11, color: '#737373', lineHeight: 1.75, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 4 }}>
+                    Led <strong style={{ color: '#d4d4d4' }}>500+ active members</strong>. Founded R&D Department and Web & App Team. Directed <strong style={{ color: '#d4d4d4' }}>IntraHacktive 1.0</strong> hackathon end-to-end.
                   </p>
                 </div>
-              </FadeUp>
+              </Reveal>
 
               {/* Certifications */}
-              <FadeUp delay={100}>
-                <div className="glass card-lift p-6 space-y-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-1 h-5 bg-amber-500 rounded-full" />
-                    <h3 className="text-sm font-bold text-neutral-200">Credentials</h3>
+              <Reveal from="right" delay={100}>
+                <div className="card" style={{ padding: '24px 28px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                    <Award size={16} style={{ color: '#f59e0b' }} />
+                    <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Credentials</h3>
                   </div>
-                  {certifications.map((cert, ci) => (
-                    <div key={ci} className={`pb-4 ${ci < certifications.length - 1 ? 'border-b border-white/5' : ''}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-[11px] font-bold text-white leading-snug flex-1">{cert.title}</h4>
-                        <span className="text-[9px] text-neutral-500 whitespace-nowrap">{cert.date}</span>
+                  <div>
+                    {[
+                      { title: 'Certified Scrum Product Owner (CSPO)®', issuer: 'Scrum Alliance', date: 'Jun 2026', id: '2196763', link: 'https://bcert.me/siupsirvv' },
+                      { title: 'Project Initiation: Starting a Successful Project', issuer: 'Google · Coursera', date: 'Apr 2026', id: 'O2WTV45BBNIQ' },
+                      { title: 'Foundations of Project Management', issuer: 'Google · Coursera', date: 'Mar 2026', id: 'CRCUF0HV72LE' },
+                      { title: 'Generative AI for Project Managers', issuer: 'PMI', date: 'Feb 2026' },
+                    ].map((c, ci) => (
+                      <div key={ci} className="cert-row">
+                        <div className="cert-icon"><Award size={14} style={{ color: '#f59e0b' }} /></div>
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ fontSize: 12, fontWeight: 700, color: '#fff', lineHeight: 1.4, marginBottom: 3 }}>{c.title}</h4>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+                            <span style={{ fontSize: 10, color: '#f59e0b', fontWeight: 600 }}>{c.issuer}</span>
+                            <span style={{ fontSize: 10, color: '#525252' }}>{c.date}</span>
+                          </div>
+                          {c.id && <p style={{ fontSize: 9, color: '#404040', marginTop: 2 }}>ID: {c.id}</p>}
+                          {c.link && (
+                            <a href={c.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, color: '#f59e0b', textDecoration: 'none', marginTop: 4 }}>
+                              Verify <ExternalLink size={8} />
+                            </a>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-[9px] text-amber-400 mt-0.5">{cert.issuer}</p>
-                      {cert.id && <p className="text-[9px] text-neutral-500 mt-0.5">ID: {cert.id}</p>}
-                      {cert.link && (
-                        <a href={cert.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-1 text-[9px] text-amber-500 hover:text-amber-300 mt-1.5 transition-colors">
-                          <span>Verify</span><ExternalLink size={8} />
-                        </a>
-                      )}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </FadeUp>
+              </Reveal>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          CONTACT SECTION
-      ══════════════════════════════════════════════════════════════════ */}
-      <section id="contact" ref={sectionsRef.contact} className="py-24 relative">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
-        <div className="glow-amber w-[500px] h-[500px] bottom-0 left-1/2 -translate-x-1/2 opacity-30" />
+      {/* ═══════════════════════ CONTACT ════════════════════════════════ */}
+      <section id="contact" ref={sections.contact} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(255,255,255,0.008)' }}>
+        <div className="glow" style={{ width: 600, height: 600, bottom: -100, left: '50%', transform: 'translateX(-50%)', background: 'rgba(245,158,11,0.04)' }} />
 
-        <div className="max-w-6xl mx-auto px-6 relative z-10">
+        <div className="site-wrap-sm" style={{ position: 'relative', zIndex: 1 }}>
+          <Reveal style={{ textAlign: 'center', marginBottom: 60 }}>
+            <p className="section-label" style={{ marginBottom: 12 }}>Let's Talk</p>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>Get In Touch</h2>
+            <div className="section-line" style={{ margin: '16px auto 0' }} />
+            <p style={{ fontSize: 13, color: '#737373', marginTop: 16, lineHeight: 1.7, maxWidth: 460, margin: '16px auto 0' }}>
+              Open to project coordination, product management, and business analysis opportunities. I respond within 24 hours.
+            </p>
+          </Reveal>
 
-          <FadeUp className="mb-14 text-center">
-            <span className="text-xs uppercase tracking-widest text-amber-500 font-bold">Connect</span>
-            <h2 className="text-3xl sm:text-4xl font-black text-white mt-2">Get In Touch</h2>
-            <div className="w-16 h-0.5 bg-gradient-to-r from-amber-500 to-amber-300 rounded-full mx-auto mt-4" />
-          </FadeUp>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Contact grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
 
             {/* Info column */}
-            <div className="lg:col-span-4 space-y-5">
-              <FadeUp>
-                <p className="text-sm text-neutral-400 leading-relaxed">
-                  Open to product coordination, project management, and business analysis roles. Drop a message — I will respond within 24 hours.
-                </p>
-              </FadeUp>
-
-              {[
-                { icon: Mail, label: 'Email', value: 'mdnafissadiqueniloy@gmail.com', href: 'mailto:mdnafissadiqueniloy@gmail.com', delay: 50 },
-                { icon: MapPin, label: 'Location', value: 'Bashundhara RA, Dhaka, Bangladesh', href: null, delay: 100 },
-              ].map(({ icon: Icon, label, value, href, delay }) => (
-                <FadeUp key={label} delay={delay}>
-                  <div className="glass card-lift p-5 flex items-start space-x-4">
-                    <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
-                      <Icon size={15} className="text-amber-400" />
+            <Reveal from="left">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {[
+                  { icon: Mail, label: 'Email', value: 'mdnafissadiqueniloy@gmail.com', href: 'mailto:mdnafissadiqueniloy@gmail.com' },
+                  { icon: MapPin, label: 'Location', value: 'Bashundhara RA, Dhaka, Bangladesh', href: null },
+                ].map(({ icon: Icon, label, value, href }) => (
+                  <div key={label} className="card" style={{ padding: '18px 22px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={15} style={{ color: '#f59e0b' }} />
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">{label}</p>
-                      {href ? (
-                        <a href={href} className="text-[12px] text-neutral-200 hover:text-amber-400 transition-colors mt-0.5 block">{value}</a>
-                      ) : (
-                        <p className="text-[12px] text-neutral-200 mt-0.5">{value}</p>
-                      )}
+                      <p style={{ fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{label}</p>
+                      {href ? <a href={href} style={{ fontSize: 12, color: '#a3a3a3', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = '#a3a3a3')}>{value}</a>
+                        : <p style={{ fontSize: 12, color: '#a3a3a3' }}>{value}</p>}
                     </div>
                   </div>
-                </FadeUp>
-              ))}
+                ))}
 
-              <FadeUp delay={150}>
-                <div className="glass card-lift p-5 space-y-3">
-                  <p className="text-[10px] uppercase tracking-wider text-neutral-500 font-semibold">Social Profiles</p>
-                  <div className="flex space-x-3">
-                    <a href="https://github.com/Nafis588" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-white/4 border border-white/8 hover:border-amber-500/25 hover:text-amber-400 text-neutral-300 text-xs font-medium transition-all">
-                      <Github size={14} /><span>GitHub</span>
-                    </a>
-                    <a href="https://www.linkedin.com/in/nafissn/" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-white/4 border border-white/8 hover:border-amber-500/25 hover:text-amber-400 text-neutral-300 text-xs font-medium transition-all">
-                      <Linkedin size={14} /><span>LinkedIn</span>
-                    </a>
+                {/* Social buttons */}
+                <div className="card" style={{ padding: '18px 22px' }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Profiles</p>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {[
+                      { icon: Github, href: 'https://github.com/Nafis588', label: 'GitHub' },
+                      { icon: Linkedin, href: 'https://www.linkedin.com/in/nafissn/', label: 'LinkedIn' },
+                    ].map(({ icon: Icon, href, label }) => (
+                      <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ flex: 1, justifyContent: 'center', padding: '9px 0', fontSize: 12 }}>
+                        <Icon size={13} /> {label}
+                      </a>
+                    ))}
                   </div>
                 </div>
-              </FadeUp>
-            </div>
+              </div>
+            </Reveal>
 
-            {/* Contact form */}
-            <FadeUp delay={100} className="lg:col-span-8">
-              <form onSubmit={handleSubmit} className="glass card-lift p-8 space-y-5">
-                <h3 className="text-sm font-bold text-white">Send a Message</h3>
+            {/* Form */}
+            <Reveal from="right" delay={100}>
+              <form onSubmit={handleSubmit} className="card" style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Send a Message</h3>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label htmlFor="name" className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Full Name</label>
-                    <input
-                      type="text" id="name" name="name" value={formData.name} onChange={handleInput}
-                      placeholder="Your Name"
-                      className={`form-input ${formErrors.name ? 'error' : ''}`}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label htmlFor="email" className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Email Address</label>
-                    <input
-                      type="email" id="email" name="email" value={formData.email} onChange={handleInput}
-                      placeholder="your@email.com"
-                      className={`form-input ${formErrors.email ? 'error' : ''}`}
-                    />
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {[{ id: 'name', placeholder: 'Your Name', type: 'text' }, { id: 'email', placeholder: 'your@email.com', type: 'email' }].map(f => (
+                    <div key={f.id}>
+                      <label htmlFor={f.id} style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{f.id === 'name' ? 'Full Name' : 'Email'}</label>
+                      <input type={f.type} id={f.id} name={f.id} value={(formData as any)[f.id]} onChange={handleInput} placeholder={f.placeholder} className={`form-field ${(formErr as any)[f.id] ? 'err' : ''}`} />
+                    </div>
+                  ))}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="subject" className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Subject</label>
-                  <input
-                    type="text" id="subject" name="subject" value={formData.subject} onChange={handleInput}
-                    placeholder="Project Inquiry / Collaboration / Opportunity"
-                    className={`form-input ${formErrors.subject ? 'error' : ''}`}
-                  />
+                <div>
+                  <label htmlFor="subject" style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Subject</label>
+                  <input type="text" id="subject" name="subject" value={formData.subject} onChange={handleInput} placeholder="Project Inquiry / Opportunity" className={`form-field ${formErr.subject ? 'err' : ''}`} />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="message" className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Message</label>
-                  <textarea
-                    id="message" name="message" rows={5} value={formData.message} onChange={handleInput}
-                    placeholder="Describe your inquiry..."
-                    className={`form-input resize-none ${formErrors.message ? 'error' : ''}`}
-                  />
+                <div>
+                  <label htmlFor="message" style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Message</label>
+                  <textarea id="message" name="message" rows={4} value={formData.message} onChange={handleInput} placeholder="Tell me about your opportunity..." className={`form-field ${formErr.message ? 'err' : ''}`} style={{ resize: 'none' }} />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full flex items-center justify-center space-x-2 py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed text-black font-bold text-sm rounded-xl transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:-translate-y-0.5"
-                >
-                  {submitting ? <span>Sending...</span> : <><span>Send Message</span><Send size={13} /></>}
+                <button type="submit" disabled={sending} className="btn-primary" style={{ width: '100%', justifyContent: 'center', opacity: sending ? 0.6 : 1, cursor: sending ? 'not-allowed' : 'pointer' }}>
+                  {sending ? 'Sending...' : <><span>Send Message</span><Send size={13} /></>}
                 </button>
 
-                {formStatus.text && (
-                  <div className={`p-3 rounded-xl text-xs font-medium border ${formStatus.type === 'success' ? 'bg-emerald-500/8 text-emerald-400 border-emerald-500/20' : 'bg-red-500/8 text-red-400 border-red-500/20'}`}>
-                    {formStatus.text}
+                {formStatus.msg && (
+                  <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, background: formStatus.t === 'success' ? 'rgba(52,211,153,0.07)' : 'rgba(239,68,68,0.07)', border: `1px solid ${formStatus.t === 'success' ? 'rgba(52,211,153,0.2)' : 'rgba(239,68,68,0.2)'}`, color: formStatus.t === 'success' ? '#34d399' : '#f87171' }}>
+                    {formStatus.msg}
                   </div>
                 )}
               </form>
-            </FadeUp>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          FOOTER
-      ══════════════════════════════════════════════════════════════════ */}
-      <footer className="py-8 border-t border-white/5">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-neutral-500 text-xs">
-          <div className="flex items-center space-x-3">
-            <span className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center text-black font-black text-xs">N</span>
+      {/* ═══════════════════════ FOOTER ═════════════════════════════════ */}
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '28px 0' }}>
+        <div className="site-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, color: '#000' }}>N</div>
             <div>
-              <p className="text-neutral-300 font-semibold text-sm">Nafis Sadique Niloy</p>
-              <p className="text-[10px]">Personal Portfolio · Project Coordinator</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#e5e5e5' }}>Nafis Sadique Niloy</p>
+              <p style={{ fontSize: 10, color: '#404040' }}>Project Coordinator · CSPO®</p>
             </div>
           </div>
-          <p className="text-[10px]">© 2026 Md. Nafis Sadique Niloy · All rights reserved.</p>
-          <div className="flex space-x-3">
-            <a href="https://github.com/Nafis588" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors" aria-label="GitHub"><Github size={15} /></a>
-            <a href="https://www.linkedin.com/in/nafissn/" target="_blank" rel="noopener noreferrer" className="hover:text-amber-400 transition-colors" aria-label="LinkedIn"><Linkedin size={15} /></a>
-            <a href="mailto:mdnafissadiqueniloy@gmail.com" className="hover:text-amber-400 transition-colors" aria-label="Email"><Mail size={15} /></a>
+          <p style={{ fontSize: 10, color: '#404040' }}>© 2026 Md. Nafis Sadique Niloy · All rights reserved.</p>
+          <div style={{ display: 'flex', gap: 12 }}>
+            {[{ icon: Github, href: 'https://github.com/Nafis588' }, { icon: Linkedin, href: 'https://www.linkedin.com/in/nafissn/' }, { icon: Mail, href: 'mailto:mdnafissadiqueniloy@gmail.com' }].map(({ icon: Icon, href }, i) => (
+              <a key={i} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ color: '#404040', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#f59e0b')} onMouseLeave={e => (e.currentTarget.style.color = '#404040')}>
+                <Icon size={15} />
+              </a>
+            ))}
           </div>
         </div>
       </footer>
@@ -1073,5 +931,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
