@@ -199,12 +199,25 @@ function App() {
     setRepos([]);
 
     try {
-      const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`);
+      const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=30`);
       if (!response.ok) {
         throw new Error('User not found or GitHub API limit reached');
       }
       const data: Repo[] = await response.json();
-      setRepos(data);
+      
+      // Filter out homework, assignments and practice repositories to keep it professional
+      const filtered = data
+        .filter(repo => {
+          const name = repo.name.toLowerCase();
+          return !name.includes('assignment') && 
+                 !name.includes('practice') && 
+                 !name.includes('homework') && 
+                 !name.startsWith('ph-') &&
+                 !name.startsWith('ph ');
+        })
+        .slice(0, 6);
+
+      setRepos(filtered);
     } catch (err: any) {
       console.error(err);
       setRepoError(err.message || "Could not fetch repositories.");
@@ -636,7 +649,8 @@ async function deliverValue() {
                   value={githubUsername}
                   onChange={(e) => setGithubUsername(e.target.value)}
                   placeholder="GitHub Username" 
-                  className="px-4 py-2 text-sm bg-slate-950 border border-slate-800 rounded-lg focus:outline-none focus:border-emerald-500 w-full md:w-48 text-slate-100"
+                  spellCheck={false}
+                  className="px-4 py-2 text-sm bg-slate-950 border border-slate-800 rounded-lg focus:outline-none focus:border-emerald-500 w-full md:w-48 text-slate-100 font-mono"
                 />
                 <button 
                   onClick={handleFetchRepos}
