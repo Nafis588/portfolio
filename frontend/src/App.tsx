@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Github, 
   Linkedin, 
-  Twitter, 
   Mail, 
   Moon, 
   Sun, 
@@ -16,8 +15,9 @@ import {
   Menu, 
   X, 
   ArrowRight, 
-  Laptop, 
-  CloudSun 
+  Award,
+  GraduationCap,
+  Users
 } from 'lucide-react';
 
 // Define structures for our TypeScript types
@@ -40,10 +40,10 @@ function App() {
 
   // Typewriter effect state
   const words = [
-    "a Fullstack Developer.",
-    "a Frontend Specialist.",
-    "an Open Source Contributor.",
-    "a Clean Code Advocate."
+    "a Certified Scrum Product Owner® (CSPO).",
+    "a Trainee Project Coordinator.",
+    "an Agile Delivery Specialist.",
+    "a Computer Science Graduate."
   ];
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentText, setCurrentText] = useState("");
@@ -51,7 +51,7 @@ function App() {
   const [typingSpeed, setTypingSpeed] = useState(100);
 
   // GitHub integration state
-  const [githubUsername, setGithubUsername] = useState("");
+  const [githubUsername, setGithubUsername] = useState("Nafis588");
   const [repos, setRepos] = useState<Repo[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
   const [repoError, setRepoError] = useState("");
@@ -177,11 +177,9 @@ function App() {
 
   // Saved username retrieval
   useEffect(() => {
-    const savedUsername = localStorage.getItem('github_username');
-    if (savedUsername) {
-      setGithubUsername(savedUsername);
-      fetchGitHubRepos(savedUsername);
-    }
+    const savedUsername = localStorage.getItem('github_username') || 'Nafis588';
+    setGithubUsername(savedUsername);
+    fetchGitHubRepos(savedUsername);
   }, []);
 
   const handleFetchRepos = (e: React.FormEvent) => {
@@ -301,7 +299,7 @@ function App() {
       <header className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 ${isScrolled ? 'py-4 bg-slate-900/80 dark:bg-slate-950/80 backdrop-blur-md shadow-lg border-b border-slate-800' : 'py-6 bg-transparent'}`}>
         <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
           <a href="#" onClick={(e) => { e.preventDefault(); scrollToSection('hero'); }} className="text-xl font-bold tracking-wider text-emerald-400">
-            &lt;Dev<span className="text-white">.Portfolio /&gt;</span>
+            &lt;Nafis<span className="text-white">.Sadique /&gt;</span>
           </a>
 
           {/* Desktop Nav */}
@@ -372,17 +370,17 @@ function App() {
         <div className="max-w-6xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-12 gap-12 items-center relative z-10">
           <div className="md:col-span-7 flex flex-col space-y-6">
             <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wider text-emerald-400 bg-emerald-500/10 rounded-full border border-emerald-500/20 max-w-max">
-              Welcome to my space
+              CSPO® Certified Product Owner
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white">
-              Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">A Passionate Developer</span>
+              Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 font-extrabold">Nafis Sadique Niloy</span>
             </h1>
             <h2 className="text-xl sm:text-2xl font-medium text-slate-300">
               I am <span className="text-emerald-400">{currentText}</span>
               <span className="inline-block w-[3px] h-[22px] bg-emerald-400 ml-1 animate-pulse"></span>
             </h2>
             <p className="text-base sm:text-lg text-slate-400 max-w-xl leading-relaxed">
-              Building premium, high-performance web applications with clean architecture and stunning, user-centered designs using the MERN stack. Let's create experiences that make an impact.
+              Goal-oriented CS graduate and Certified Scrum Product Owner working as a Project Coordinator. Experienced in software delivery, requirement engineering, stakeholder coordination, and managing Agile releases across ERP and web platforms.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <button 
@@ -391,23 +389,29 @@ function App() {
               >
                 <span>View Projects</span> <ArrowRight size={16} />
               </button>
-              <button 
-                onClick={() => scrollToSection('contact')} 
-                className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg border border-slate-700 transition-all transform hover:-translate-y-0.5"
+              <a 
+                href="/CV of Md. Nafis Sadique Niloy.pdf" 
+                download="CV_Md_Nafis_Sadique_Niloy.pdf"
+                className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg border border-slate-700 flex items-center space-x-2 transition-all transform hover:-translate-y-0.5"
               >
-                Get In Touch
-              </button>
+                <span>Download CV</span>
+              </a>
+              <a 
+                href="/linkedin.pdf" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-slate-800/50 hover:bg-slate-700 text-slate-300 font-medium rounded-lg border border-slate-850 hover:border-slate-700 flex items-center space-x-2 transition-all transform hover:-translate-y-0.5"
+              >
+                <span>LinkedIn Export</span>
+              </a>
             </div>
             
             <div className="flex space-x-4 pt-6 text-slate-400">
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="p-2 hover:text-emerald-400 hover:bg-slate-800/40 rounded-lg transition-all" aria-label="GitHub">
+              <a href="https://github.com/Nafis588" target="_blank" rel="noopener noreferrer" className="p-2 hover:text-emerald-400 hover:bg-slate-800/40 rounded-lg transition-all" aria-label="GitHub">
                 <Github size={20} />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2 hover:text-emerald-400 hover:bg-slate-800/40 rounded-lg transition-all" aria-label="LinkedIn">
+              <a href="https://www.linkedin.com/in/nafissn/" target="_blank" rel="noopener noreferrer" className="p-2 hover:text-emerald-400 hover:bg-slate-800/40 rounded-lg transition-all" aria-label="LinkedIn">
                 <Linkedin size={20} />
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="p-2 hover:text-emerald-400 hover:bg-slate-800/40 rounded-lg transition-all" aria-label="Twitter">
-                <Twitter size={20} />
               </a>
               <a href="mailto:mdnafissadiqueniloy@gmail.com" className="p-2 hover:text-emerald-400 hover:bg-slate-800/40 rounded-lg transition-all" aria-label="Email">
                 <Mail size={20} />
@@ -425,16 +429,18 @@ function App() {
               </div>
               <pre className="text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed">
                 <code>
-{`const developer = {
-  name: 'Creative Engineer',
-  stack: ['MongoDB', 'Express', 'React', 'Node'],
-  tools: ['TypeScript', 'TailwindCSS v4'],
-  status: 'Building premium MERN apps'
+{`const coordinator = {
+  name: 'Md. Nafis Sadique Niloy',
+  role: 'Trainee Project Coordinator',
+  certification: 'CSPO® (Scrum Alliance)',
+  frameworks: ['Agile', 'Scrum', 'Hybrid SDLC'],
+  tools: ['Jira', 'Notion', 'Slack', 'GitHub'],
+  techBase: ['React', 'TypeScript', 'Node', 'MongoDB']
 };
 
-async function createImpact() {
-  console.log('Crafting interactive interfaces...');
-  await buildNextBigThing();
+async function deliverValue() {
+  console.log('Translating requirements to software...');
+  await alignTeamsAndRelease();
 }`}
                 </code>
               </pre>
@@ -448,7 +454,7 @@ async function createImpact() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col items-center text-center space-y-4 mb-16">
             <span className="text-emerald-400 font-semibold tracking-wider uppercase text-sm">About Me</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">My Background & Core Competencies</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">Background & Core Competencies</h2>
             <div className="w-20 h-1 bg-emerald-400 rounded-full"></div>
           </div>
 
@@ -456,53 +462,49 @@ async function createImpact() {
             <div className="rounded-xl border border-slate-800 bg-slate-900/30 dark:bg-slate-950/30 p-8 flex flex-col space-y-6">
               <h3 className="text-xl font-semibold text-white">Who I Am</h3>
               <p className="text-slate-400 leading-relaxed">
-                I'm a goal-oriented software developer specializing in building modern web applications. My journey started with a curiosity about how the web works, which quickly evolved into a full-fledged passion for creating pixel-perfect, clean, and interactive websites.
+                I am a Computer Science graduate from BRAC University and a Certified Scrum Product Owner® (CSPO) currently working as a Trainee Project Coordinator at ATI Limited. I possess hands-on experience in software delivery, stakeholder coordination, and Agile execution.
               </p>
               <p className="text-slate-400 leading-relaxed">
-                I bridge the gap between pure engineering and high-end aesthetics. My goal is to build web apps that are not only performant and scalable under the hood but are also beautiful, accessible, and delightful to interact with.
+                I specialize in translating business needs into structured requirements, aligning cross-functional design, engineering, and QA teams, and supporting predictable releases across ERP, government workflows, and web platforms. I am eager to grow into a Project/Product Management role with greater ownership of delivery, process improvement, and product outcomes.
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-slate-300">
                 <div className="flex items-center space-x-3">
                   <MapPin className="text-emerald-400" size={18} />
-                  <span>Based in: <strong>Remote / Global</strong></span>
+                  <span>Dhaka, Bangladesh</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Briefcase className="text-emerald-400" size={18} />
-                  <span>Available for: <strong>Full-time</strong></span>
+                  <span>Product / Project Delivery</span>
                 </div>
               </div>
             </div>
 
             {/* Technical Skills Panels */}
             <div className="rounded-xl border border-slate-800 bg-slate-900/30 dark:bg-slate-950/30 p-8 flex flex-col space-y-6">
-              <h3 className="text-xl font-semibold text-white">Technical Skills</h3>
-              <p className="text-slate-400 text-sm">A curated list of tools and technologies I specialize in:</p>
+              <h3 className="text-xl font-semibold text-white">Technical & Professional Skills</h3>
               
-              <div className="space-y-4">
+              <div className="space-y-4 text-sm">
                 <div>
-                  <h4 className="text-sm font-semibold text-emerald-400 mb-2">Frontend Stack</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {['React.js', 'TypeScript', 'TailwindCSS v4', 'Vite', 'HTML5 & CSS3', 'ES6+ JS'].map(skill => (
-                      <span key={skill} className="px-3 py-1 bg-slate-800 text-slate-300 rounded-md text-xs border border-slate-700">{skill}</span>
-                    ))}
-                  </div>
+                  <h4 className="font-semibold text-emerald-400 mb-1">Project Management & Delivery</h4>
+                  <p className="text-slate-400 text-xs">Sprint planning, backlog tracking, cross-functional coordination (Dev/QA/Design), UAT facilitation, release readiness, and ERP/HR/Payroll delivery (Agile/Hybrid SDLC).</p>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-emerald-400 mb-2">Backend & Database</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {['Node.js', 'Express.js', 'MongoDB', 'Mongoose', 'RESTful APIs'].map(skill => (
-                      <span key={skill} className="px-3 py-1 bg-slate-800 text-slate-300 rounded-md text-xs border border-slate-700">{skill}</span>
-                    ))}
-                  </div>
+                  <h4 className="font-semibold text-emerald-400 mb-1">Business Analysis & Requirements</h4>
+                  <p className="text-slate-400 text-xs">Requirement gathering, workflow analysis, user stories, acceptance criteria, BRD/SRS inputs, scope clarification, and stakeholder workshops.</p>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-semibold text-emerald-400 mb-2">Workflow & Design</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {['Git / GitHub', 'CI/CD Webhooks', 'Responsive Layouts', 'Glassmorphism', 'Web Accessibility'].map(skill => (
-                      <span key={skill} className="px-3 py-1 bg-slate-800 text-slate-300 rounded-md text-xs border border-slate-700">{skill}</span>
+                  <h4 className="font-semibold text-emerald-400 mb-1">System Understanding & Process</h4>
+                  <p className="text-slate-400 text-xs">Dependency tracking, impact analysis, integration awareness (APIs/CMS workflows), issue triage, meeting minutes, trackers, and implementation planning.</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-emerald-400 mb-1">Tools & Technical Foundation</h4>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {['Jira', 'Notion', 'Slack', 'GitHub', 'React basics', 'TypeScript', 'Node.js', 'MongoDB', 'HTML5 & CSS3'].map(skill => (
+                      <span key={skill} className="px-2.5 py-0.5 bg-slate-800 text-slate-300 rounded text-xs border border-slate-700">{skill}</span>
                     ))}
                   </div>
                 </div>
@@ -516,58 +518,149 @@ async function createImpact() {
       <section id="projects" ref={sectionsRef.projects} className="py-24 bg-slate-900/50 border-t border-slate-800 dark:bg-slate-950/50 dark:border-slate-900">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col items-center text-center space-y-4 mb-16">
-            <span className="text-emerald-400 font-semibold tracking-wider uppercase text-sm">My Work</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">Featured Projects</h2>
-            <p className="text-slate-400 max-w-lg">A dynamic listing of live GitHub repositories and static concepts.</p>
+            <span className="text-emerald-400 font-semibold tracking-wider uppercase text-sm">Project Portfolio</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">Key Projects Coordinated</h2>
+            <p className="text-slate-400 max-w-lg">A listing of enterprise systems I've managed, alongside academic products.</p>
             <div className="w-20 h-1 bg-emerald-400 rounded-full"></div>
           </div>
 
-          {/* GitHub configuration form */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-md p-6 max-w-2xl mx-auto mb-12 flex flex-col md:flex-row items-center gap-6 justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/25">
-                <Github className="text-emerald-400" size={24} />
-              </div>
-              <div>
-                <h4 className="font-semibold text-white">Integrate Your GitHub Profile</h4>
-                <p className="text-slate-400 text-xs">Enter your username to fetch public repositories using the GitHub API.</p>
-              </div>
+          {/* Professional Projects Grid */}
+          <div className="mb-16">
+            <h3 className="text-lg font-bold text-emerald-400 mb-6 flex items-center space-x-2">
+              <Briefcase size={20} />
+              <span>Professional Projects (ATI Limited)</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                {
+                  title: "Budget Management System",
+                  client: "Bangladesh Navy",
+                  desc: "Leading requirement gathering and coordinating delivery of budget workflow modules with cross-functional teams. Acting as liaison between naval stakeholders and engineering to lock scope.",
+                  tags: ["Agile SDLC", "Scope Management", "Backlog Grooming"]
+                },
+                {
+                  title: "NATDOC Website (Dynamic/CMS)",
+                  client: "Bangladesh Navy",
+                  desc: "Conducted on-site requirement validation and finalized SRS to confirm workflows, content structure, and approvals. Coordinating development progress, documentation updates, and stakeholder loops.",
+                  tags: ["SRS", "Requirement Validation", "CMS Workflows"]
+                },
+                {
+                  title: "ERP Modules (HR, Payroll, Accounts)",
+                  client: "Jamuna Oil Company Limited (JOCL)",
+                  desc: "Supporting gap analysis and requirement detailing for HR, payroll, and accounts-related workflows inside ERP. Preparing implementation plans and tracking rollout tasks with dependencies.",
+                  tags: ["Gap Analysis", "ERP", "Dependency Tracking"]
+                },
+                {
+                  title: "Dynamic University Website (CMS)",
+                  client: "Bangladesh Maritime University (BMU)",
+                  desc: "Coordinating redesign and development lifecycle of the official university portal with CMS-driven workflows. Supporting content migration planning, issue tracking, and delivery follow-ups.",
+                  tags: ["CMS", "Redesign Lifecycle", "Content Migration"]
+                },
+                {
+                  title: "Centralized Healthcare Platform",
+                  client: "Ghana (Healthcare/Insurance Client)",
+                  desc: "Supporting delivery of a multi-tenant platform where multiple hospitals operate within a single system. Coordinating cross-border communication, milestone tracking, and documentation.",
+                  tags: ["Multi-Tenant", "Milestone Tracking", "Cross-Border Comm"]
+                }
+              ].map((proj, idx) => (
+                <div key={idx} className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col justify-between hover:border-emerald-500/30 transition-all hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-1 transform">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">
+                      {proj.client}
+                    </span>
+                    <h4 className="text-lg font-bold text-white mt-3 mb-2">{proj.title}</h4>
+                    <p className="text-slate-400 text-xs leading-relaxed mb-6">{proj.desc}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1 pt-3 border-t border-slate-850">
+                    {proj.tags.map(tag => (
+                      <span key={tag} className="px-2 py-0.5 bg-slate-800 text-slate-400 text-[10px] rounded border border-slate-700">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            <form onSubmit={handleFormSubmit} className="flex w-full md:w-auto gap-2">
-              <input 
-                type="text" 
-                value={githubUsername}
-                onChange={(e) => setGithubUsername(e.target.value)}
-                placeholder="Enter GitHub username" 
-                className="px-4 py-2 text-sm bg-slate-950 border border-slate-800 rounded-lg focus:outline-none focus:border-emerald-500 w-full md:w-48 text-slate-100"
-              />
-              <button 
-                onClick={handleFetchRepos}
-                className="px-4 py-2 text-sm bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-all shrink-0"
-              >
-                Load Repos
-              </button>
-            </form>
           </div>
 
-          {/* Repository display grid */}
-          {loadingRepos ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-3">
-              <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-              <p className="text-slate-400 text-sm">Loading repositories from GitHub...</p>
+          {/* Academic Projects Grid */}
+          <div className="mb-20">
+            <h3 className="text-lg font-bold text-emerald-400 mb-6 flex items-center space-x-2">
+              <GraduationCap size={20} />
+              <span>Academic Projects (BRAC University)</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  title: "USIS 3.0 Student Portal",
+                  desc: "Student portal with advanced course planning features. Designed to optimize course selection workflows and schedule visualization.",
+                  tech: "React, TypeScript, MongoDB, Tailwind CSS"
+                },
+                {
+                  title: "BRACU OCA System",
+                  desc: "Club management tool for BRAC University Office of Co-Curricular Activities to automate event scheduling and club resource allocation.",
+                  tech: "Next.js, React, MongoDB"
+                }
+              ].map((proj, idx) => (
+                <div key={idx} className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col justify-between hover:border-emerald-500/30 transition-all hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-1 transform">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded">
+                      Academic
+                    </span>
+                    <h4 className="text-lg font-bold text-white mt-3 mb-2">{proj.title}</h4>
+                    <p className="text-slate-400 text-xs leading-relaxed mb-6">{proj.desc}</p>
+                  </div>
+                  <div className="text-xs text-slate-400 pt-3 border-t border-slate-850 flex items-center space-x-1.5">
+                    <Code size={12} className="text-emerald-400" />
+                    <span><strong>Tech Stack:</strong> {proj.tech}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : repoError ? (
-            <div className="text-center py-8">
-              <p className="text-red-400 text-sm mb-4">Error loading live projects: {repoError}</p>
-              <p className="text-slate-400 text-xs">Loading static concept projects instead...</p>
-            </div>
-          ) : null}
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {repos.length > 0 ? (
-              repos.map(repo => (
-                <div key={repo.id} className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col justify-between hover:border-emerald-500/30 transition-all hover:shadow-xl hover:shadow-emerald-500/5 hover:-translate-y-1 transform">
+          {/* GitHub configuration form & live repo listing */}
+          <div className="border-t border-slate-800 pt-16">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-md p-6 max-w-2xl mx-auto mb-12 flex flex-col md:flex-row items-center gap-6 justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-emerald-500/10 rounded-full border border-emerald-500/25">
+                  <Github className="text-emerald-400" size={24} />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-white">Live GitHub Repositories</h4>
+                  <p className="text-slate-400 text-xs">Public code repositories fetched live via the GitHub REST API.</p>
+                </div>
+              </div>
+              
+              <form onSubmit={(e) => e.preventDefault()} className="flex w-full md:w-auto gap-2">
+                <input 
+                  type="text" 
+                  value={githubUsername}
+                  onChange={(e) => setGithubUsername(e.target.value)}
+                  placeholder="GitHub Username" 
+                  className="px-4 py-2 text-sm bg-slate-950 border border-slate-800 rounded-lg focus:outline-none focus:border-emerald-500 w-full md:w-48 text-slate-100"
+                />
+                <button 
+                  onClick={handleFetchRepos}
+                  className="px-4 py-2 text-sm bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-all shrink-0"
+                >
+                  Load
+                </button>
+              </form>
+            </div>
+
+            {loadingRepos ? (
+              <div className="flex flex-col items-center justify-center py-12 space-y-3">
+                <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                <p className="text-slate-400 text-sm">Loading repositories from GitHub...</p>
+              </div>
+            ) : repoError ? (
+              <div className="text-center py-8">
+                <p className="text-red-400 text-sm">Error loading live repositories: {repoError}</p>
+              </div>
+            ) : null}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {repos.length > 0 && repos.map(repo => (
+                <div key={repo.id} className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col justify-between hover:border-emerald-500/30 transition-all hover:shadow-xl hover:-translate-y-1 transform">
                   <div>
                     <div className="flex justify-between items-start mb-4">
                       <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">
@@ -576,8 +669,8 @@ async function createImpact() {
                       <Github size={18} className="text-slate-400" />
                     </div>
                     
-                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">{repo.name.replace(/[-_]/g, ' ')}</h3>
-                    <p className="text-slate-400 text-xs leading-relaxed mb-6 line-clamp-3">
+                    <h3 className="text-sm font-bold text-white mb-2 line-clamp-1">{repo.name.replace(/[-_]/g, ' ')}</h3>
+                    <p className="text-slate-400 text-[11px] leading-relaxed mb-6 line-clamp-3">
                       {repo.description || "No description provided. Click below to inspect code and details directly."}
                     </p>
                   </div>
@@ -606,80 +699,8 @@ async function createImpact() {
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              // Fallback / Static items
-              <>
-                <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">
-                        Featured
-                      </span>
-                      <Laptop size={18} className="text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-2">Premium MERN Portfolio</h3>
-                    <p className="text-slate-400 text-xs leading-relaxed mb-6">
-                      A premium, state-of-the-art React, TypeScript, and TailwindCSS portfolio with an integrated Express.js server and database storage.
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-4 mb-4 text-slate-300 text-xs">
-                      <span className="flex items-center space-x-1"><Code size={12} className="text-emerald-400" /><span>TypeScript</span></span>
-                    </div>
-                    <div className="flex space-x-4 text-xs font-semibold pt-3 border-t border-slate-850">
-                      <span className="text-slate-500 cursor-not-allowed">Source Code</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">
-                        Application
-                      </span>
-                      <Laptop size={18} className="text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-2">Kanban Task Board</h3>
-                    <p className="text-slate-400 text-xs leading-relaxed mb-6">
-                      An interactive drag-and-drop project management board featuring customizable columns, task tagging, and state persistence.
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-4 mb-4 text-slate-300 text-xs">
-                      <span className="flex items-center space-x-1"><Code size={12} className="text-emerald-400" /><span>React</span></span>
-                    </div>
-                    <div className="flex space-x-4 text-xs font-semibold pt-3 border-t border-slate-850">
-                      <span className="text-slate-500 cursor-not-allowed">Source Code</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">
-                        Web API
-                      </span>
-                      <CloudSun size={18} className="text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-2">Global Weather Center</h3>
-                    <p className="text-slate-400 text-xs leading-relaxed mb-6">
-                      A clean, responsive dashboard displaying dynamic meteorological graphs and five-day weather forecasts utilizing third-party APIs.
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-4 mb-4 text-slate-300 text-xs">
-                      <span className="flex items-center space-x-1"><Code size={12} className="text-emerald-400" /><span>JavaScript</span></span>
-                    </div>
-                    <div className="flex space-x-4 text-xs font-semibold pt-3 border-t border-slate-850">
-                      <span className="text-slate-500 cursor-not-allowed">Source Code</span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -689,41 +710,145 @@ async function createImpact() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col items-center text-center space-y-4 mb-16">
             <span className="text-emerald-400 font-semibold tracking-wider uppercase text-sm">My Journey</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">Work Experience & Milestones</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">Experience & Certifications</h2>
             <div className="w-20 h-1 bg-emerald-400 rounded-full"></div>
           </div>
 
-          <div className="max-w-3xl mx-auto relative border-l-2 border-slate-800 pl-8 space-y-12">
-            {[
-              {
-                date: '2024 - Present',
-                role: 'Lead Frontend Architect',
-                company: 'Innovate Tech Labs',
-                desc: 'Driving the development of high-fidelity client dashboards and responsive applications. Managed a small team to migrate legacy software to modern single-page architectures, resulting in a 40% loading speed optimization.'
-              },
-              {
-                date: '2022 - 2024',
-                role: 'Fullstack Software Engineer',
-                company: 'Apex Digital Solutions',
-                desc: 'Developed scalable API endpoints and created polished client-facing interfaces. Implemented clean coding guidelines, automated unit tests, and reduced bug reports in production cycles by 25%.'
-              },
-              {
-                date: '2020 - 2022',
-                role: 'Junior Frontend Developer',
-                company: 'Pixel Perfect Studios',
-                desc: 'Crafted customized HTML/CSS responsive templates and interactive components for diverse e-commerce layouts. Partnered with UX design leads to ensure pixel-perfect fidelity across browsers and devices.'
-              }
-            ].map((exp, idx) => (
-              <div key={idx} className="relative">
-                {/* Timeline node */}
-                <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-slate-900 dark:bg-slate-950 border-4 border-emerald-400"></div>
-                
-                <span className="text-xs font-semibold text-emerald-400 tracking-wide">{exp.date}</span>
-                <h3 className="text-xl font-bold text-white mt-1">{exp.role}</h3>
-                <h4 className="text-slate-400 text-sm font-medium mb-3">{exp.company}</h4>
-                <p className="text-slate-400 text-sm leading-relaxed">{exp.desc}</p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            {/* Left Column: Work Experience Timeline */}
+            <div className="lg:col-span-7 relative border-l-2 border-slate-800 pl-8 space-y-12">
+              {[
+                {
+                  date: 'Jan 2026 - Present',
+                  role: 'Trainee Project Coordinator',
+                  company: 'ATI Limited',
+                  desc: [
+                    'Coordinating delivery of multiple ERP, government, and web platform projects across education, energy, and public-sector clients.',
+                    'Supporting requirement engineering (BRD/SRS inputs), sprint tracking, cross-team alignment, and delivery follow-ups with Dev/QA/Design.',
+                    'Assisting UAT coordination, release readiness, documentation, and stakeholder communication for ongoing implementations.'
+                  ]
+                },
+                {
+                  date: 'Oct 2025 - Dec 2025',
+                  role: 'Project Management Intern',
+                  company: 'ATI Limited',
+                  desc: [
+                    'Supported requirement elicitation, backlog refinement, sprint review preparation, and coordinating task boards.',
+                    'Facilitated team syncs and developer follow-ups to maintain sprint goals and lock deliverables.'
+                  ]
+                }
+              ].map((exp, idx) => (
+                <div key={idx} className="relative">
+                  {/* Timeline node */}
+                  <div className="absolute -left-[41px] top-1.5 w-6 h-6 rounded-full bg-slate-900 dark:bg-slate-950 border-4 border-emerald-400"></div>
+                  
+                  <span className="text-xs font-semibold text-emerald-400 tracking-wide">{exp.date}</span>
+                  <h3 className="text-xl font-bold text-white mt-1">{exp.role}</h3>
+                  <h4 className="text-slate-400 text-sm font-medium mb-3">{exp.company}</h4>
+                  <ul className="list-disc pl-4 text-slate-400 text-xs space-y-2 leading-relaxed">
+                    {exp.desc.map((bullet, bidx) => <li key={bidx}>{bullet}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            {/* Right Column: Leadership & Certifications */}
+            <div className="lg:col-span-5 space-y-8">
+              {/* Leadership block */}
+              <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 space-y-4">
+                <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                  <Users size={18} className="text-emerald-400" />
+                  <span>Leadership & Extra-Curriculars</span>
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="text-sm font-bold text-white">President</h4>
+                    <span className="text-xs text-emerald-400 font-semibold">BRAC University Computer Club (BUCC)</span>
+                    <p className="text-slate-500 text-[10px] mt-0.5">Oct 2023 - Dec 2024</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Former Senior Executive, HR</h4>
+                    <span className="text-xs text-emerald-400 font-semibold">BRAC University Computer Club (BUCC)</span>
+                    <p className="text-slate-500 text-[10px] mt-0.5">Jun 2022 - Oct 2023</p>
+                  </div>
+                  <p className="text-slate-400 text-xs leading-relaxed border-t border-slate-800 pt-3">
+                    Led a university tech organization with <strong>500+ active members</strong>. Founded the Research & Development Department and Web & App Team. Coordinated operations, mentorships, and directed the end-to-end execution of the <strong>IntraHacktive 1.0</strong> hackathon.
+                  </p>
+                </div>
               </div>
-            ))}
+
+              {/* Certifications block */}
+              <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 space-y-4">
+                <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                  <Award size={18} className="text-emerald-400" />
+                  <span>Certifications</span>
+                </h3>
+                <div className="space-y-4">
+                  {[
+                    {
+                      title: "Certified Scrum Product Owner (CSPO)®",
+                      issuer: "Scrum Alliance",
+                      date: "Jun 7, 2026",
+                      link: "https://bcert.me/siupsirvv",
+                      details: "Credential ID: 2196763"
+                    },
+                    {
+                      title: "Project Initiation: Starting a Successful Project",
+                      issuer: "Google (Coursera)",
+                      date: "Apr 2026",
+                      details: "Credential ID: O2WTV45BBNIQ"
+                    },
+                    {
+                      title: "Foundations of Project Management",
+                      issuer: "Google (Coursera)",
+                      date: "Mar 2026",
+                      details: "Credential ID: CRCUF0HV72LE"
+                    },
+                    {
+                      title: "Generative AI for Project Managers",
+                      issuer: "PMI",
+                      date: "Feb 2026"
+                    }
+                  ].map((cert, cidx) => (
+                    <div key={cidx} className="text-xs border-b border-slate-850 last:border-b-0 pb-3 last:pb-0">
+                      <h4 className="font-bold text-white leading-snug">{cert.title}</h4>
+                      <div className="flex justify-between text-slate-400 text-[10px] mt-1">
+                        <span>{cert.issuer}</span>
+                        <span>{cert.date}</span>
+                      </div>
+                      {cert.details && <p className="text-slate-500 text-[10px] mt-0.5">{cert.details}</p>}
+                      {cert.link && (
+                        <a 
+                          href={cert.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-emerald-400 hover:underline text-[10px] mt-1 inline-flex items-center space-x-1"
+                        >
+                          <span>Verify Credential</span> <ExternalLink size={10} />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Education block at the bottom */}
+          <div className="max-w-3xl mx-auto mt-16 p-6 rounded-xl border border-slate-800 bg-slate-900/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/20">
+                <GraduationCap size={24} />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-base">B.Sc. in Computer Science</h4>
+                <p className="text-slate-400 text-sm">BRAC University</p>
+                <p className="text-slate-500 text-xs">CGPA: 3.27/4.00 | Jun 2021 – Sep 2025</p>
+              </div>
+            </div>
+            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-semibold self-start md:self-auto">
+              Completed
+            </span>
           </div>
         </div>
       </section>
@@ -733,8 +858,8 @@ async function createImpact() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col items-center text-center space-y-4 mb-16">
             <span className="text-emerald-400 font-semibold tracking-wider uppercase text-sm">Let's Connect</span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white">Get In Touch With Me</h2>
-            <p className="text-slate-400 max-w-md">Have a project in mind, a job opportunity, or just want to say hi? Send a message!</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white">Get In Touch</h2>
+            <p className="text-slate-400 max-w-md">Have a role, project, or opportunity you'd like to discuss? Drop a message!</p>
             <div className="w-20 h-1 bg-emerald-400 rounded-full"></div>
           </div>
 
@@ -758,21 +883,18 @@ async function createImpact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-white mb-1">Location</h4>
-                  <p className="text-slate-400 text-sm">Remote Global</p>
+                  <p className="text-slate-400 text-sm">House 167, Road 6, F Block, Bashundhara RA, Dhaka, Bangladesh</p>
                 </div>
               </div>
 
               <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6 flex flex-col space-y-4">
-                <h4 className="font-semibold text-white">Follow & Chat</h4>
+                <h4 className="font-semibold text-white">Profiles</h4>
                 <div className="flex space-x-3 text-slate-400">
-                  <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-slate-800 hover:text-emerald-400 rounded-lg transition-all" aria-label="GitHub">
+                  <a href="https://github.com/Nafis588" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-slate-800 hover:text-emerald-400 rounded-lg transition-all" aria-label="GitHub">
                     <Github size={18} />
                   </a>
-                  <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-slate-800 hover:text-emerald-400 rounded-lg transition-all" aria-label="LinkedIn">
+                  <a href="https://www.linkedin.com/in/nafissn/" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-slate-800 hover:text-emerald-400 rounded-lg transition-all" aria-label="LinkedIn">
                     <Linkedin size={18} />
-                  </a>
-                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="p-2.5 bg-slate-800 hover:text-emerald-400 rounded-lg transition-all" aria-label="Twitter">
-                    <Twitter size={18} />
                   </a>
                 </div>
               </div>
@@ -790,7 +912,7 @@ async function createImpact() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      placeholder="John Doe" 
+                      placeholder="Your Name" 
                       className={`px-4 py-3 bg-slate-950 border ${formErrors.name ? 'border-red-500' : 'border-slate-800'} rounded-lg focus:outline-none focus:border-emerald-500 text-sm text-slate-100`}
                     />
                     {formErrors.name && <span className="text-[10px] text-red-500 font-semibold">Name is required</span>}
@@ -804,7 +926,7 @@ async function createImpact() {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="john@example.com" 
+                      placeholder="your@email.com" 
                       className={`px-4 py-3 bg-slate-950 border ${formErrors.email ? 'border-red-500' : 'border-slate-800'} rounded-lg focus:outline-none focus:border-emerald-500 text-sm text-slate-100`}
                     />
                     {formErrors.email && <span className="text-[10px] text-red-500 font-semibold">Please enter a valid email address</span>}
@@ -819,7 +941,7 @@ async function createImpact() {
                     name="subject"
                     value={formData.subject}
                     onChange={handleInputChange}
-                    placeholder="Project Inquiry" 
+                    placeholder="Project / Role Inquiry" 
                     className={`px-4 py-3 bg-slate-950 border ${formErrors.subject ? 'border-red-500' : 'border-slate-800'} rounded-lg focus:outline-none focus:border-emerald-500 text-sm text-slate-100`}
                   />
                   {formErrors.subject && <span className="text-[10px] text-red-500 font-semibold">Subject is required</span>}
@@ -833,7 +955,7 @@ async function createImpact() {
                     rows={5}
                     value={formData.message}
                     onChange={handleInputChange}
-                    placeholder="Tell me about your project..." 
+                    placeholder="Describe your inquiry..." 
                     className={`px-4 py-3 bg-slate-950 border ${formErrors.message ? 'border-red-500' : 'border-slate-800'} rounded-lg focus:outline-none focus:border-emerald-500 text-sm text-slate-100`}
                   />
                   {formErrors.message && <span className="text-[10px] text-red-500 font-semibold">Message content is required</span>}
@@ -868,17 +990,16 @@ async function createImpact() {
       <footer className="py-12 bg-slate-900 border-t border-slate-800 dark:bg-slate-950 dark:border-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-col space-y-2 text-center md:text-left">
-            <span className="text-lg font-bold text-emerald-400 tracking-wider">&lt;Dev.Portfolio /&gt;</span>
-            <p className="text-xs">Designed and coded with passion. MERN stack personal portfolio.</p>
+            <span className="text-lg font-bold text-emerald-400 tracking-wider">&lt;Nafis.Sadique /&gt;</span>
+            <p className="text-xs">Personal Portfolio & Dynamic MERN Dashboard.</p>
           </div>
           
           <div className="flex space-x-4">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors" aria-label="GitHub"><Github size={18} /></a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors" aria-label="LinkedIn"><Linkedin size={18} /></a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors" aria-label="Twitter"><Github size={18} /></a>
+            <a href="https://github.com/Nafis588" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors" aria-label="GitHub"><Github size={18} /></a>
+            <a href="https://www.linkedin.com/in/nafissn/" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-400 transition-colors" aria-label="LinkedIn"><Linkedin size={18} /></a>
           </div>
 
-          <p className="text-xs font-light">&copy; 2026 Portfolio. All rights reserved.</p>
+          <p className="text-xs font-light">&copy; 2026 Md. Nafis Sadique Niloy. All rights reserved.</p>
         </div>
       </footer>
     </div>
