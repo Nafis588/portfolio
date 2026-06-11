@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional developer portfolio showcasing engineering projects, technical skills, and career experience. Built with clean, modern code.">
+    <meta name="keywords" content="Portfolio, Software Developer, Fullstack Engineer, Web Developer, JavaScript, Showcase">
+    <meta name="author" content="Portfolio Owner">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Portfolio | Creative Developer & Engineer">
+    <meta property="og:description" content="Explore my projects, skills, and professional experience. Let's build something amazing together!">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=1200&auto=format&fit=crop">
+    <meta property="og:url" content="">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="Portfolio | Creative Developer & Engineer">
+    <meta property="twitter:description" content="Explore my projects, skills, and professional experience. Let's build something amazing together!">
+    <meta property="twitter:image" content="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=1200&auto=format&fit=crop">
+
+    <title>Portfolio | Creative Developer & Engineer</title>
+
+    <!-- Google Fonts - Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Back to Top Button -->
+    <a href="#" id="backToTop" class="back-to-top" aria-label="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </a>
+
+    <!-- Navigation Header -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" id="navLogo">
+                <span>&lt;</span>Dev<span>.Portfolio /&gt;</span>
+            </a>
+            
+            <nav class="nav-menu" id="navMenu">
+                <ul>
+                    <li><a href="#hero" class="nav-link active">Home</a></li>
+                    <li><a href="#about" class="nav-link">About</a></li>
+                    <li><a href="#projects" class="nav-link">Projects</a></li>
+                    <li><a href="#experience" class="nav-link">Experience</a></li>
+                    <li><a href="#contact" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav-actions">
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle Theme">
+                    <i class="fas fa-moon moon-icon"></i>
+                    <i class="fas fa-sun sun-icon"></i>
+                </button>
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open Menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+
+        <!-- Hero Section -->
+        <section id="hero" class="hero-section">
+            <div class="hero-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+            </div>
+            
+            <div class="container hero-content">
+                <div class="hero-text">
+                    <span class="hero-badge">Welcome to my space</span>
+                    <h1 class="hero-title">
+                        Hi, I'm <span class="highlight-text" id="heroName">A Passionate Developer</span>
+                    </h1>
+                    <h2 class="hero-subtitle">
+                        I am <span id="typewriter" class="typewriter-text"></span><span class="cursor">|</span>
+                    </h2>
+                    <p class="hero-description">
+                        Building premium, high-performance web applications with clean architecture and stunning, user-centered designs. Let's create experiences that make an impact.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#projects" class="btn btn-primary">View Projects <i class="fas fa-arrow-right"></i></a>
+                        <a href="#contact" class="btn btn-secondary">Get In Touch</a>
+                    </div>
+                    
+                    <div class="hero-socials">
+                        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="social-icon" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="mailto:contact@example.com" class="social-icon" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+                
+                <div class="hero-visual">
+                    <div class="visual-card glass-panel">
+                        <div class="window-header">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <div class="window-content">
+                            <pre><code><span class="code-keyword">const</span> developer = {
+    name: <span class="code-string">'Creative Engineer'</span>,
+    skills: [<span class="code-string">'JavaScript'</span>, <span class="code-string">'CSS3'</span>, <span class="code-string">'HTML5'</span>],
+    passion: <span class="code-string">'Building stunning UI'</span>,
+    currentFocus: <span class="code-string">'Optimizing Web Apps'</span>,
+    status: <span class="code-string">'Ready to build'</span>
+};
+
+<span class="code-keyword">function</span> <span class="code-function">createImpact</span>() {
+    <span class="code-keyword">return</span> <span class="code-keyword">new</span> Promise(resolve => {
+        console.log(<span class="code-string">'Creating premium layouts...'</span>);
+        setTimeout(resolve, <span class="code-number">1000</span>);
+    });
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Me Section -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">About Me</span>
+                    <h2 class="section-title">My Background & Core Competencies</h2>
+                    <div class="divider"></div>
+                </div>
+                
+                <div class="about-grid">
+                    <div class="about-info glass-panel">
+                        <h3>Who I Am</h3>
+                        <p>
+                            I'm a goal-oriented software developer specializing in building modern web applications. My journey started with a curiosity about how the web works, which quickly evolved into a full-fledged passion for creating pixel-perfect, clean, and interactive websites.
+                        </p>
+                        <p>
+                            I bridges the gap between pure engineering and high-end aesthetics. My goal is to build web apps that are not only performant and scalable under the hood but are also beautiful, accessible, and delightful to interact with.
+                        </p>
+                        
+                        <div class="personal-details">
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Based in: <strong>Remote / Global</strong></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-briefcase"></i>
+                                <span>Available for: <strong>Full-time & Freelance</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="skills-panel glass-panel">
+                        <h3>Technical Skills</h3>
+                        <p class="skills-sub">A curated list of tools and technologies I specialize in:</p>
+                        
+                        <div class="skills-category">
+                            <h4>Frontend Stack</h4>
+                            <div class="skills-container">
+                                <span class="skill-chip"><i class="fab fa-html5 text-orange"></i> HTML5</span>
+                                <span class="skill-chip"><i class="fab fa-css3-alt text-blue"></i> CSS3 / Modern Flexbox & Grid</span>
+                                <span class="skill-chip"><i class="fab fa-js-square text-yellow"></i> JavaScript (ES6+)</span>
+                                <span class="skill-chip"><i class="fab fa-react text-sky"></i> React / Next.js</span>
+                            </div>
+                        </div>
+
+                        <div class="skills-category">
+                            <h4>Tools & Systems</h4>
+                            <div class="skills-container">
+                                <span class="skill-chip"><i class="fab fa-git-alt text-red"></i> Git / Version Control</span>
+                                <span class="skill-chip"><i class="fab fa-github"></i> GitHub Workflows</span>
+                                <span class="skill-chip"><i class="fas fa-terminal"></i> Terminal / Command Line</span>
+                                <span class="skill-chip"><i class="fas fa-cube"></i> Webpack & Vite Build Systems</span>
+                            </div>
+                        </div>
+
+                        <div class="skills-category">
+                            <h4>Design & Philosophy</h4>
+                            <div class="skills-container">
+                                <span class="skill-chip"><i class="fas fa-palette"></i> Glassmorphism / Fluent UI</span>
+                                <span class="skill-chip"><i class="fas fa-mobile-alt"></i> Mobile-First / Responsive</span>
+                                <span class="skill-chip"><i class="fas fa-universal-access"></i> Web Accessibility (a11y)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="projects-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">My Work</span>
+                    <h2 class="section-title">Featured Projects</h2>
+                    <p class="section-description">A mixture of active GitHub repositories and carefully crafted static concepts.</p>
+                    <div class="divider"></div>
+                </div>
+
+                <!-- GitHub Configuration Panel (Dynamic Demo Input) -->
+                <div class="github-config-panel glass-panel">
+                    <div class="config-icon">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <div class="config-content">
+                        <h4>Integrate Your GitHub Profile</h4>
+                        <p>Enter your GitHub username to automatically fetch your live repositories using the GitHub REST API.</p>
+                        <div class="config-input-group">
+                            <input type="text" id="githubUsernameInput" placeholder="Enter GitHub username (e.g., octocat)" aria-label="GitHub username">
+                            <button id="fetchGithubBtn" class="btn btn-primary btn-sm">Load Projects</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Display Area -->
+                <div class="projects-loader" id="projectsLoader">
+                    <div class="spinner"></div>
+                    <p>Loading repositories from GitHub...</p>
+                </div>
+                
+                <div class="projects-grid" id="projectsGrid">
+                    <!-- Static Fallback / Default Project Cards -->
+                    <div class="project-card glass-panel">
+                        <div class="project-badge">Featured</div>
+                        <div class="project-image-fallback">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <div class="project-details">
+                            <div class="project-tech">
+                                <span class="tech-tag">JavaScript</span>
+                                <span class="tech-tag">CSS3</span>
+                                <span class="tech-tag">HTML5</span>
+                            </div>
+                            <h3>Premium Glassmorphic Portfolio</h3>
+                            <p>A high-end responsive portfolio website featuring a dark/light mode toggle, dynamic typing, and automated GitHub integration.</p>
+                            <div class="project-links">
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Source</a>
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="project-card glass-panel">
+                        <div class="project-badge">Application</div>
+                        <div class="project-image-fallback">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="project-details">
+                            <div class="project-tech">
+                                <span class="tech-tag">HTML5</span>
+                                <span class="tech-tag">CSS3</span>
+                                <span class="tech-tag">Local Storage</span>
+                            </div>
+                            <h3>Kanban Task Board</h3>
+                            <p>An interactive drag-and-drop project management board featuring customizable columns, task tagging, and state persistence.</p>
+                            <div class="project-links">
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Source</a>
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="project-card glass-panel">
+                        <div class="project-badge">Web API</div>
+                        <div class="project-image-fallback">
+                            <i class="fas fa-cloud-sun"></i>
+                        </div>
+                        <div class="project-details">
+                            <div class="project-tech">
+                                <span class="tech-tag">JavaScript</span>
+                                <span class="tech-tag">Fetch API</span>
+                                <span class="tech-tag">CSS Grid</span>
+                            </div>
+                            <h3>Global Weather Center</h3>
+                            <p>A clean, responsive dashboard displaying dynamic meteorological graphs and five-day weather forecasts utilizing third-party APIs.</p>
+                            <div class="project-links">
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Source</a>
+                                <a href="#" class="project-link" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt"></i> Live Demo</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Timeline Section -->
+        <section id="experience" class="experience-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">My Journey</span>
+                    <h2 class="section-title">Work Experience & Milestones</h2>
+                    <div class="divider"></div>
+                </div>
+
+                <div class="timeline">
+                    <!-- Timeline Item 1 -->
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">2024 - Present</div>
+                        <div class="timeline-content glass-panel">
+                            <h3>Lead Frontend Architect</h3>
+                            <h4 class="company-name">Innovate Tech Labs</h4>
+                            <p>
+                                Driving the development of high-fidelity client dashboards and responsive applications. Managed a small team to migrate legacy software to modern single-page architectures, resulting in a 40% loading speed optimization.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Item 2 -->
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">2022 - 2024</div>
+                        <div class="timeline-content glass-panel">
+                            <h3>Fullstack Software Engineer</h3>
+                            <h4 class="company-name">Apex Digital Solutions</h4>
+                            <p>
+                                Developed scalable API endpoints and created polished client-facing interfaces. Implemented clean coding guidelines, automated unit tests, and reduced bug reports in production cycles by 25%.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Item 3 -->
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-date">2020 - 2022</div>
+                        <div class="timeline-content glass-panel">
+                            <h3>Junior Frontend Developer</h3>
+                            <h4 class="company-name">Pixel Perfect Studios</h4>
+                            <p>
+                                Crafted customized HTML/CSS responsive templates and interactive components for diverse e-commerce layouts. Partnered with UX design leads to ensure pixel-perfect fidelity across browsers and devices.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="contact-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Let's Connect</span>
+                    <h2 class="section-title">Get In Touch With Me</h2>
+                    <p class="section-description">Have a project in mind, a job opportunity, or just want to say hi? Send a message!</p>
+                    <div class="divider"></div>
+                </div>
+
+                <div class="contact-grid">
+                    <!-- Contact Cards -->
+                    <div class="contact-info">
+                        <div class="contact-info-card glass-panel">
+                            <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                            <div class="info-content">
+                                <h4>Email Me</h4>
+                                <a href="mailto:contact@example.com">contact@example.com</a>
+                                <p>Typically responds within 24 hours</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-card glass-panel">
+                            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                            <div class="info-content">
+                                <h4>Location</h4>
+                                <p>San Francisco, CA / Remote Global</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-card glass-panel">
+                            <div class="info-icon"><i class="fas fa-comments"></i></div>
+                            <div class="info-content">
+                                <h4>Follow & Chat</h4>
+                                <div class="social-links-grid">
+                                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div class="contact-form-panel glass-panel">
+                        <form id="contactForm" novalidate>
+                            <div class="form-group">
+                                <label for="formName">Full Name</label>
+                                <div class="input-container">
+                                    <i class="fas fa-user input-icon"></i>
+                                    <input type="text" id="formName" name="name" placeholder="John Doe" required>
+                                </div>
+                                <span class="error-msg" id="nameError">Name is required</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formEmail">Email Address</label>
+                                <div class="input-container">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    <input type="email" id="formEmail" name="email" placeholder="john@example.com" required>
+                                </div>
+                                <span class="error-msg" id="emailError">Please enter a valid email address</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formSubject">Subject</label>
+                                <div class="input-container">
+                                    <i class="fas fa-tag input-icon"></i>
+                                    <input type="text" id="formSubject" name="subject" placeholder="Project Inquiry" required>
+                                </div>
+                                <span class="error-msg" id="subjectError">Subject is required</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="formMessage">Message</label>
+                                <div class="input-container">
+                                    <textarea id="formMessage" name="message" rows="5" placeholder="Tell me about your project..." required></textarea>
+                                </div>
+                                <span class="error-msg" id="messageError">Message content is required</span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block" id="formSubmitBtn">
+                                <span>Send Message</span> <i class="fas fa-paper-plane"></i>
+                            </button>
+                            
+                            <div class="form-status" id="formStatus">
+                                <!-- Status messages dynamically generated here -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <a href="#" class="footer-logo">&lt;Dev<span>.Portfolio /&gt;</span></a>
+                <p>Designed and coded with passion. Creating visually stunning web experiences that run with clean architecture.</p>
+            </div>
+            
+            <div class="footer-divider"></div>
+            
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2026 Portfolio. All rights reserved.</p>
+                <div class="footer-socials">
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- App Script -->
+    <script src="script.js"></script>
+</body>
+</html>
