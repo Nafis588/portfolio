@@ -1,16 +1,43 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import Message from '../models/Message.js';
+import { authMiddleware, AuthRequest } from '../utils/auth.js';
 
 const router = express.Router();
 const localFilePath = path.join(process.cwd(), 'messages.json');
 
+// Simple IP-based in-memory rate limiter
+const ipCache = new Map<string, { count: number; resetTime: number }>();
+
+const contactRateLimiter = (req: Request, res: Response, next: any) => {
+  const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+
+  let ipData = ipCache.get(ip);
+
+  if (!ipData || now > ipData.resetTime) {
+    ipData = { count: 1, resetTime: now + windowMs };
+    ipCache.set(ip, ipData);
+    return next();
+  }
+
+  if (ipData.count >= 5) {
+    return res.status(429).json({
+      message: 'Too many contact submissions. Maximum is 5 requests per 15 minutes. Please try again later.'
+    });
+  }
+
+  ipData.count++;
+  next();
+};
+
 // Helper to save locally
-const saveLocally = (messageData) => {
+const saveLocally = (messageData: any) => {
   try {
-    let messages = [];
+    let messages: any[] = [];
     if (fs.existsSync(localFilePath)) {
       const content = fs.readFileSync(localFilePath, 'utf8');
       messages = JSON.parse(content || '[]');
@@ -44,8 +71,8 @@ const getLocally = () => {
 
 // @desc    Submit a contact message
 // @route   POST /api/contact
-// @access  Public
-router.post('/', async (req, res) => {
+// @access  Public (Rate-limited)
+router.post('/', contactRateLimiter, async (req: Request, res: Response) => {
   try {
     const { name, email, subject, message } = req.body;
 
@@ -73,15 +100,15 @@ router.post('/', async (req, res) => {
       message: isDbConnected ? 'Message sent successfully (Saved to MongoDB)!' : 'Message sent successfully (Saved to local backup file)!',
       data: savedMessage,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// @desc    Get all messages (for testing/admin purposes)
-// @route   GET /api/contact
-// @access  Public
-router.get('/', async (req, res) => {
+// @desc    Get all messages (for admin purposes)
+// @route   GET /api/contact/messages
+// @access  Private
+router.get('/messages', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const isDbConnected = mongoose.connection.readyState === 1;
     if (isDbConnected) {
@@ -90,7 +117,7 @@ router.get('/', async (req, res) => {
     } else {
       res.json(getLocally().reverse());
     }
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 });

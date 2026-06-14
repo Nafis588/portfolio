@@ -1,933 +1,1241 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  Github, Linkedin, Mail, Moon, Sun, ChevronUp, MapPin,
-  Briefcase, ExternalLink, Code, Send, Menu, X, ArrowRight,
-  Award, GraduationCap, Users, Download, FileText, Sparkles,
-  CheckCircle, Calendar,
+  Mail, MapPin, Award, Download, ExternalLink, Send,
+  Trophy, Medal, GraduationCap, Star, Crown, Shield
 } from 'lucide-react';
+import './portfolio.css';
 
-/* ─── intersection-observer hook ─── */
-function useVisible(rootMargin = '-80px') {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); io.disconnect(); } }, { rootMargin });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [rootMargin]);
-  return { ref, visible };
-}
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api';
 
-/* ─── animated section reveal ─── */
-function Reveal({ children, delay = 0, from = 'bottom', className = '', style: extraStyle }: {
-  children: React.ReactNode; delay?: number; from?: 'bottom' | 'left' | 'right'; className?: string; style?: React.CSSProperties;
-}) {
-  const { ref, visible } = useVisible();
-  const transforms: Record<string, string> = { bottom: 'translateY(40px)', left: 'translateX(-40px)', right: 'translateX(40px)' };
-  return (
-    <div ref={ref} className={className} style={{
-      opacity: visible ? 1 : 0,
-      ...extraStyle,
-      transform: visible ? 'none' : transforms[from],
-      transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
-    }}>{children}</div>
-  );
-}
+// Safe fetch wrapper
+const fetchApi = async (url: string, options?: RequestInit) => {
+  try {
+    const res = await fetch(`${API_BASE}${url}`, options);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || `HTTP error ${res.status}`);
+    }
+    return await res.json();
+  } catch (err: any) {
+    console.warn(`API Error at ${url}:`, err.message);
+    throw err;
+  }
+};
 
-/* ─── typewriter ─── */
-function Typewriter({ words }: { words: string[] }) {
-  const [idx, setIdx] = useState(0);
-  const [txt, setTxt] = useState('');
-  const [del, setDel] = useState(false);
-  useEffect(() => {
-    const word = words[idx % words.length];
-    const t = setTimeout(() => {
-      if (!del) {
-        setTxt(word.slice(0, txt.length + 1));
-        if (txt.length + 1 === word.length) setTimeout(() => setDel(true), 2000);
-      } else {
-        setTxt(word.slice(0, txt.length - 1));
-        if (txt.length - 1 === 0) { setDel(false); setIdx(i => i + 1); }
-      }
-    }, del ? 35 : 80);
-    return () => clearTimeout(t);
-  }, [txt, del, idx, words]);
-  return <><span className="text-violet-400">{txt}</span><span className="text-violet-400 animate-pulse">|</span></>;
-}
+const SDLC_STAGES = ['Planning', 'Analysis', 'Design', 'Implementation', 'Testing', 'Deployment', 'Maintenance'];
 
-/* ─── counter animation ─── */
-function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
-  const { ref, visible } = useVisible();
+const CLIENTS = [
+  { name: 'Bangladesh Navy', icon: '⚓' },
+  { name: 'Jamuna Oil Company', icon: '🏭' },
+  { name: 'Bangladesh Maritime University', icon: '🎓' },
+  { name: 'ATI Limited', icon: '💼' },
+  { name: 'Ghana Healthcare Client', icon: '🏥' }
+];
+
+/* ─── Animate Counter Component ─── */
+function Counter({ target }: { target: number }) {
   const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const animated = useRef(false);
+  const currentTarget = useRef(target);
+
   useEffect(() => {
-    if (!visible) return;
-    let start = 0;
-    const step = Math.ceil(to / 40);
-    const id = setInterval(() => { start = Math.min(start + step, to); setCount(start); if (start >= to) clearInterval(id); }, 40);
-    return () => clearInterval(id);
-  }, [visible, to]);
-  return <span ref={ref}>{count}{suffix}</span>;
+    // If target has changed and we already animated, animate from current count to new target
+    if (animated.current && currentTarget.current !== target) {
+      currentTarget.current = target;
+      let startTimestamp: number | null = null;
+      const duration = 1500;
+      const startValue = count;
+      const step = (timestamp: number) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.round(startValue + (target - startValue) * eased));
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+      return;
+    }
+
+    currentTarget.current = target;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !animated.current) {
+          animated.current = true;
+          let startTimestamp: number | null = null;
+          const duration = 1500;
+          const step = (timestamp: number) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            setCount(Math.round(target * eased));
+            if (progress < 1) {
+              window.requestAnimationFrame(step);
+            }
+          };
+          window.requestAnimationFrame(step);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target]);
+
+  return <span ref={ref}>{count}</span>;
 }
 
-/* ══════════════════════════════════════════════════ MAIN APP ══ */
 export default function App() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [showTop, setShowTop] = useState(false);
-  const [active, setActive] = useState('hero');
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
-  const [formErr, setFormErr] = useState({ name: false, email: false, subject: false, message: false });
-  const [formStatus, setFormStatus] = useState<{ t: 'success' | 'error' | ''; msg: string }>({ t: '', msg: '' });
-  const [sending, setSending] = useState(false);
+  const [profile, setProfile] = useState<any>({
+    fullName: 'Md. Nafis Sadique Niloy',
+    siteName: 'Nafis Niloy Portfolio',
+    metaDescription: 'Md. Nafis Sadique Niloy - Certified Scrum Product Owner (CSPO) & Trainee Project Coordinator',
+    heroGreeting: 'Hi, I am',
+    heroTitles: [
+      'Trainee Project Coordinator',
+      'Computer Science Graduate',
+      'Agile & Product Management Enthusiast'
+    ],
+    bioParagraphs: [
+      'I bridge business needs with engineering execution, specializing in Agile project management methodologies, sprint planning, and Work Breakdown Structures (WBS).',
+      'Currently operating out of Dhaka and Rangpur, my core focus is driving delivery efficiency across enterprise and government clients.'
+    ],
+    avatarUrl: '/profile.png',
+    heroBadgeText: 'CSPO® Certified Product Owner',
+    aboutStatusText: 'Currently active at ATI Limited — Full-Time',
+    designTokens: {
+      primaryColor: '#6366f1',
+      secondaryColor: '#475569',
+      fontFamily: 'Plus Jakarta Sans',
+      backgroundColor: '#040814',
+      textColor: '#f1f5f9',
+      cardColor: 'rgba(15, 23, 42, 0.5)',
+      themeTemplate: 'cyan-emerald'
+    },
+    socialLinks: {
+      github: 'https://github.com/Nafis588',
+      linkedin: 'https://www.linkedin.com/in/nafissn/',
+      email: 'mdnafissadiqueniloy@gmail.com'
+    },
+    resumeUrl: '/CV of Md. Nafis Sadique Niloy.pdf',
+    sectionVisibility: {
+      showExperience: true,
+      showStartups: true,
+      showCertifications: true,
+      showEducation: true,
+      showSkills: true,
+      showLeadership: true,
+      showAchievements: true
+    },
+    stat1: { value: 7, suffix: '+', label: 'Projects Coordinated' },
+    stat2: { value: 4, suffix: '+', label: 'Certs & Credentials' },
+    stat3: { value: 500, suffix: '+', label: 'BUCC Members Led' },
+    stat4: { value: 3, suffix: '+', label: 'Years in PM / Tech' }
+  });
 
-  const sections = { hero: useRef<HTMLElement>(null), about: useRef<HTMLElement>(null), projects: useRef<HTMLElement>(null), experience: useRef<HTMLElement>(null), contact: useRef<HTMLElement>(null) };
+  const [projects, setProjects] = useState<any[]>([]);
+  const [experiences, setExperiences] = useState<any[]>([]);
+  const [startups, setStartups] = useState<any[]>([]);
+  const [skills, setSkills] = useState<any[]>([]);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('theme') as 'dark' | 'light' | null;
-    const t = saved ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    setTheme(t); applyTheme(t);
-  }, []);
+  const [projectFilter, setProjectFilter] = useState<'all' | 'Enterprise' | 'Academic' | 'Startup'>('all');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [navbarScrolled, setNavbarScrolled] = useState(false);
+  const [activeNav, setActiveNav] = useState('home');
 
-  const applyTheme = (t: string) => {
-    document.documentElement.classList.toggle('dark', t === 'dark');
-    document.documentElement.setAttribute('data-theme', t);
+  // Contact form
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [contactStatus, setContactStatus] = useState({ type: '', msg: '' });
+  const [contactSending, setContactSending] = useState(false);
+
+  // Typewriter states
+  const [typewriterText, setTypewriterText] = useState('');
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Terminal logging states
+  const [terminalLines, setTerminalLines] = useState<any[]>([]);
+  const [currentTerminalLine, setCurrentTerminalLine] = useState('');
+  const [terminalStep, setTerminalStep] = useState(0);
+  const logs = [
+    { type: 'cmd', text: 'npm run deliver-sprint' },
+    { type: 'output', text: 'Initializing sprint delivery pipeline...' },
+    { type: 'output', text: 'Fetching backlog user stories from Jira... [14 stories]' },
+    { type: 'output', text: 'Executing CSPO® prioritizations... [Grooming DONE]' },
+    { type: 'output', text: 'Aligning Dev, QA, and UI/UX design... [Aligned]' },
+    { type: 'output', text: 'Running automated integration builds... [All PASSED]' },
+    { type: 'output', text: 'Starting ERP module UAT... [Passed]' },
+    { type: 'output', text: 'Pushing release tag to QA server...' },
+    { type: 'success', text: 'Sprint 12 successfully delivered! 🚀' }
+  ];
+
+  // Theme state
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  // Date formatting helpers
+  const formatMonthYear = (dateStr: string | Date | null) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next); localStorage.setItem('theme', next); applyTheme(next);
+  const formatExperiencePeriod = (exp: any) => {
+    if (exp.isActive) {
+      return `${formatMonthYear(exp.periodStart)} – Present`;
+    }
+    if (exp.periodEnd) {
+      return `${formatMonthYear(exp.periodStart)} – ${formatMonthYear(exp.periodEnd)}`;
+    }
+    return `${formatMonthYear(exp.periodStart)} – Completed`;
   };
 
-  const goTo = useCallback((id: string) => {
-    setMenuOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
+  // Custom badge renderer with full design customization
+  const renderCustomBadge = (exp: any, defaultIcon: string) => {
+    const icon = exp.badge || defaultIcon;
+    if (!icon) return null;
 
-  useEffect(() => {
-    const handle = () => {
-      const y = window.scrollY;
-      setScrolled(y > 60); setShowTop(y > 400);
-      for (const k of ['contact', 'experience', 'projects', 'about', 'hero'] as const) {
-        const el = sections[k].current;
-        if (el && y >= el.offsetTop - 200) { setActive(k); break; }
-      }
-    };
-    window.addEventListener('scroll', handle, { passive: true });
-    return () => window.removeEventListener('scroll', handle);
-  }, []);
+    const bg = exp.badgeBgColor || 'rgba(99, 102, 241, 0.08)';
+    const color = exp.badgeTextColor || 'var(--accent-primary)';
+    const shape = exp.badgeShape || 'pill';
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(p => ({ ...p, [name]: value }));
-    setFormErr(p => ({ ...p, [name]: false }));
-  };
+    let borderRadius = 'var(--radius-sm)';
+    if (shape === 'circle') borderRadius = 'var(--radius-full)';
+    if (shape === 'square') borderRadius = '4px';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const errs = {
-      name: !formData.name.trim(), email: !formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email),
-      subject: !formData.subject.trim(), message: !formData.message.trim(),
-    };
-    setFormErr(errs);
-    if (Object.values(errs).some(Boolean)) { setFormStatus({ t: 'error', msg: 'Please fill in all required fields.' }); return; }
-    setSending(true);
-    try {
-      const res = await fetch('http://localhost:5000/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.message);
-      setFormStatus({ t: 'success', msg: 'Message sent! I\'ll get back to you within 24 hours.' });
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (err: any) {
-      setFormStatus({ t: 'error', msg: err.message || 'Failed to send.' });
-    } finally { setSending(false); }
-  };
+    const isOutline = shape === 'outline';
+    const borderStyle = isOutline ? `1px solid ${color}` : '1px solid transparent';
+    const finalBg = isOutline ? 'transparent' : bg;
 
-  const nav = ['Home', 'About', 'Projects', 'Experience', 'Contact'];
-  const skills = {
-    'Project Management': ['Sprint Planning', 'Backlog Grooming', 'UAT Facilitation', 'Release Readiness', 'Agile/Hybrid SDLC', 'Cross-functional Teams'],
-    'Business Analysis': ['Requirement Elicitation', 'User Story Mapping', 'BRD/SRS Writing', 'Workflow Analysis', 'Acceptance Criteria', 'Prioritization'],
-    'Tools & Tech': ['Jira', 'Notion', 'Slack', 'GitHub', 'React.js', 'TypeScript', 'Node.js', 'MongoDB'],
-  };
-
-  /* ── RENDER ── */
-  return (
-    <div className="min-h-screen bg-[#05050c] text-neutral-100 antialiased">
-
-      {/* ── INJECTED CSS ── */}
-      <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; }
-        :root { scroll-behavior: smooth; }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 2px; }
-
-        /* ── layout containers ── */
-        .site-wrap   { max-width: 1480px; margin: 0 auto; padding: 0 40px; }
-        .site-wrap-sm{ max-width: 1100px; margin: 0 auto; padding: 0 40px; }
-
-        @media (max-width: 768px) {
-          .site-wrap, .site-wrap-sm { padding: 0 20px; }
-        }
-
-        /* ── section divider ── */
-        .section-line { width: 48px; height: 3px; background: linear-gradient(90deg,#8b5cf6,#ec4899); border-radius: 2px; }
-
-        /* ── card ── */
-        .card {
-          background: rgba(255,255,255,0.025);
-          border: 1px solid rgba(255,255,255,0.07);
-          border-radius: 20px;
-          transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
-        }
-        .card:hover {
-          border-color: rgba(139, 92, 246,0.25);
-          box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(139, 92, 246,0.08);
-          transform: translateY(-3px);
-        }
-
-        /* ── pill ── */
-        .pill {
-          display: inline-flex; align-items: center;
-          padding: 4px 12px; font-size: 11px; font-weight: 600;
-          background: rgba(139, 92, 246,0.08); color: #a78bfa;
-          border: 1px solid rgba(139, 92, 246,0.18); border-radius: 999px;
-          letter-spacing: 0.05em;
-        }
-
-        /* ── tag ── */
-        .tag {
-          display: inline-block; padding: 3px 10px;
-          font-size: 10px; font-weight: 600;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 8px; color: #a3a3a3;
-          transition: background 0.2s, color 0.2s;
-          cursor: default;
-        }
-        .tag:hover { background: rgba(139, 92, 246,0.12); color: #a78bfa; }
-
-        /* ── skill block ── */
-        .skill-group { border-radius: 16px; padding: 20px 24px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
-
-        /* ── project card ── */
-        .proj-card {
-          position: relative; overflow: hidden;
-          border-radius: 20px; padding: 28px;
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.07);
-          transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
-          display: flex; flex-direction: column; gap: 14px;
-        }
-        .proj-card::before {
-          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(139, 92, 246,0.5), transparent);
-          opacity: 0; transition: opacity 0.3s;
-        }
-        .proj-card:hover { border-color: rgba(139, 92, 246,0.2); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-        .proj-card:hover::before { opacity: 1; }
-
-        /* ── timeline ── */
-        .tl-line { position: absolute; left: 23px; top: 48px; bottom: 0; width: 1px; background: linear-gradient(to bottom, rgba(139, 92, 246,0.6), transparent); }
-        .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: #05050c; border: 2px solid #8b5cf6; box-shadow: 0 0 10px rgba(139, 92, 246,0.4); flex-shrink: 0; margin-top: 4px; }
-
-        /* ── form ── */
-        .form-field {
-          width: 100%; padding: 12px 16px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.09);
-          border-radius: 12px; color: #f5f5f5;
-          font-size: 13px; outline: none;
-          transition: border-color 0.25s, box-shadow 0.25s;
-          font-family: inherit;
-        }
-        .form-field::placeholder { color: #4a4a4a; }
-        .form-field:focus { border-color: rgba(139, 92, 246,0.45); box-shadow: 0 0 0 3px rgba(139, 92, 246,0.07); }
-        .form-field.err { border-color: rgba(239,68,68,0.5); }
-
-        /* ── nav ── */
-        .nav-pill { padding: 6px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; transition: background 0.2s, color 0.2s; cursor: pointer; border: none; background: transparent; color: #737373; }
-        .nav-pill:hover { color: #e5e5e5; background: rgba(255,255,255,0.05); }
-        .nav-pill.active { color: #8b5cf6; background: rgba(139, 92, 246,0.1); font-weight: 600; }
-
-        /* ── hero ── */
-        .hero-number { font-size: clamp(120px, 18vw, 220px); font-weight: 900; line-height: 0.85; letter-spacing: -0.06em; color: rgba(255,255,255,0.04); user-select: none; pointer-events: none; }
-
-        /* ── section label ── */
-        .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #8b5cf6; }
-
-        /* ── glow ── */
-        .glow { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; }
-
-        /* ── stat ── */
-        .stat-item { padding: 28px 32px; border-right: 1px solid rgba(255,255,255,0.06); }
-        .stat-item:last-child { border-right: none; }
-
-        /* ── hover btn ── */
-        .btn-primary {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 11px 24px; font-size: 13px; font-weight: 700;
-          background: #8b5cf6; color: #000; border: none; border-radius: 12px;
-          cursor: pointer; transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-          text-decoration: none;
-        }
-        .btn-primary:hover { background: #a78bfa; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139, 92, 246,0.3); }
-
-        .btn-ghost {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 10px 22px; font-size: 13px; font-weight: 600;
-          background: rgba(255,255,255,0.04); color: #d4d4d4;
-          border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-          cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
-          text-decoration: none;
-        }
-        .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(139, 92, 246,0.25); transform: translateY(-2px); color: #fff; }
-
-        /* ── scroll indicator ── */
-        @keyframes scrollBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
-        .scroll-bounce { animation: scrollBounce 1.5s ease-in-out infinite; }
-
-        /* ── cert badge ── */
-        .cert-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .cert-row:last-child { border-bottom: none; padding-bottom: 0; }
-        .cert-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(139, 92, 246,0.1); border: 1px solid rgba(139, 92, 246,0.2); }
-
-        @keyframes fadeInDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:none} }
-        .fade-in-down { animation: fadeInDown 0.25s ease forwards; }
-      `}</style>
-
-      {/* ───────────────────────── BACK TO TOP ───────────────────────── */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        aria-label="Back to top"
+    return (
+      <span 
+        className="custom-designed-badge"
         style={{
-          position: 'fixed', bottom: 28, right: 28, zIndex: 60,
-          width: 44, height: 44, borderRadius: 12,
-          background: '#8b5cf6', color: '#000', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(139, 92, 246,0.35)',
-          opacity: showTop ? 1 : 0, transform: showTop ? 'scale(1)' : 'scale(0.7)',
-          transition: 'opacity 0.3s, transform 0.3s', pointerEvents: showTop ? 'auto' : 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: shape === 'circle' ? '6px' : '4px 10px',
+          fontSize: '0.75rem',
+          fontWeight: 700,
+          lineHeight: 1,
+          borderRadius,
+          backgroundColor: finalBg,
+          color,
+          border: borderStyle,
+          minWidth: shape === 'circle' ? '28px' : 'auto',
+          height: shape === 'circle' ? '28px' : 'auto',
         }}
       >
-        <ChevronUp size={18} strokeWidth={2.5} />
-      </button>
+        {icon}
+      </span>
+    );
+  };
 
-      {/* ───────────────────────── NAVBAR ───────────────────────────── */}
-      <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        transition: 'all 0.4s',
-        padding: scrolled ? '10px 0' : '18px 0',
-        background: scrolled ? 'rgba(5, 5, 12, 0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
-      }}>
-        <div className="site-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Logo */}
-          <button onClick={() => goTo('hero')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 15, color: '#000' }}>N</div>
-            <span style={{ fontWeight: 700, fontSize: 14, color: '#e5e5e5', letterSpacing: '-0.01em' }}>Nafis<span style={{ color: '#8b5cf6' }}>.</span></span>
-          </button>
-
-          {/* Desktop nav */}
-          <nav style={{ display: 'flex', gap: 4 }} className="hidden-mobile">
-            {nav.map(item => {
-              const id = item === 'Home' ? 'hero' : item.toLowerCase();
-              return (
-                <button key={item} onClick={() => goTo(id)} className={`nav-pill ${active === id ? 'active' : ''}`}>{item}</button>
-              );
-            })}
-          </nav>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={toggleTheme} style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#a3a3a3', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} aria-label="Toggle theme">
-              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-            </button>
-            <a href="mailto:mdnafissadiqueniloy@gmail.com" className="btn-primary hidden-mobile" style={{ padding: '8px 18px', fontSize: 12 }}>
-              <Mail size={12} /> Hire Me
-            </a>
-            <button onClick={() => setMenuOpen(!menuOpen)} className="show-mobile" style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)', color: '#a3a3a3', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Menu">
-              {menuOpen ? <X size={16} /> : <Menu size={16} />}
-            </button>
-          </div>
+  // Reusable timeline component
+  const renderTimeline = (items: any[], accentColor: string, defaultIcon: string = '') => {
+    return (
+      <div className="timeline">
+        <div className="timeline-line">
+          <div className="timeline-line-progress"></div>
         </div>
-
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div className="fade-in-down site-wrap" style={{ paddingTop: 12, paddingBottom: 12 }}>
-            <div style={{ background: 'rgba(10, 10, 20, 0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '12px 8px', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {nav.map(item => {
-                const id = item === 'Home' ? 'hero' : item.toLowerCase();
-                return <button key={item} onClick={() => goTo(id)} className={`nav-pill ${active === id ? 'active' : ''}`} style={{ textAlign: 'left' }}>{item}</button>;
-              })}
-              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <a href="mailto:mdnafissadiqueniloy@gmail.com" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}><Mail size={13} /> Hire Me</a>
-              </div>
-            </div>
-          </div>
-        )}
-      </header>
-
-      <style>{`
-        @media(min-width:769px){ .hidden-mobile{ display:flex !important; } .show-mobile{ display:none !important; } }
-        @media(max-width:768px){ .hidden-mobile{ display:none !important; } .show-mobile{ display:flex !important; } }
-      `}</style>
-
-      {/* ═══════════════════════════════ HERO ═══════════════════════════ */}
-      <section id="hero" ref={sections.hero} style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden', paddingTop: 100, paddingBottom: 60 }}>
-
-        {/* Background decorations */}
-        <div className="glow" style={{ width: 700, height: 700, top: -200, right: -200, background: 'rgba(139, 92, 246,0.06)' }} />
-        <div className="glow" style={{ width: 400, height: 400, bottom: 0, left: -100, background: 'rgba(139, 92, 246,0.04)' }} />
-
-        {/* Watermark number */}
-        <div className="hero-number" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', userSelect: 'none', lineHeight: 1 }}>01</div>
-
-        <div className="site-wrap">
-          {/* ── Top badge ── */}
-          <Reveal delay={0}>
-            <div style={{ marginBottom: 32 }}>
-              <span className="pill"><Sparkles size={11} style={{ marginRight: 6 }} />CSPO® · Credential ID 2196763 · Scrum Alliance</span>
-            </div>
-          </Reveal>
-
-          {/* ── Name block ── */}
-          <Reveal delay={80}>
-            <div style={{ marginBottom: 20 }}>
-              <h1 style={{ fontSize: 'clamp(48px, 8vw, 96px)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.04em', color: '#fff' }}>
-                Md. Nafis<br />
-                <span style={{ WebkitTextStroke: '1px rgba(255,255,255,0.25)', color: 'transparent' }}>Sadique</span><br />
-                <span style={{ color: '#8b5cf6' }}>Niloy</span>
-              </h1>
-            </div>
-          </Reveal>
-
-          {/* ── Typewriter subtitle ── */}
-          <Reveal delay={160}>
-            <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', fontWeight: 500, color: '#a3a3a3', marginBottom: 24, letterSpacing: '-0.01em' }}>
-              <Typewriter words={['Project Coordinator', 'Certified Product Owner', 'Agile Practitioner', 'Delivery Specialist']} />
-            </p>
-          </Reveal>
-
-          {/* ── Bio line ── */}
-          <Reveal delay={220}>
-            <p style={{ fontSize: 14, color: '#737373', lineHeight: 1.7, maxWidth: 520, marginBottom: 36 }}>
-              Computer Science graduate and CSPO® managing ERP, government, and enterprise software delivery at ATI Limited — bridging business needs with engineering execution.
-            </p>
-          </Reveal>
-
-          {/* ── CTA row ── */}
-          <Reveal delay={290}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 48 }}>
-              <button className="btn-primary" onClick={() => goTo('projects')}>
-                View Projects <ArrowRight size={14} />
-              </button>
-              <a href="/CV of Md. Nafis Sadique Niloy.pdf" download="CV_Md_Nafis_Sadique_Niloy.pdf" className="btn-ghost">
-                <Download size={13} /> Download CV
-              </a>
-              <a href="/linkedin.pdf" target="_blank" rel="noopener noreferrer" className="btn-ghost">
-                <FileText size={13} /> LinkedIn PDF
-              </a>
-            </div>
-          </Reveal>
-
-          {/* ── Social row ── */}
-          <Reveal delay={350}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {[
-                { icon: Github, href: 'https://github.com/Nafis588', label: 'GitHub' },
-                { icon: Linkedin, href: 'https://www.linkedin.com/in/nafissn/', label: 'LinkedIn' },
-                { icon: Mail, href: 'mailto:mdnafissadiqueniloy@gmail.com', label: 'Email' },
-              ].map(({ icon: Icon, href, label }) => (
-                <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" aria-label={label}
-                  style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#737373', transition: 'all 0.2s', textDecoration: 'none' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#8b5cf6'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(139, 92, 246,0.3)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#737373'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)'; }}>
-                  <Icon size={16} />
-                </a>
-              ))}
-              <div style={{ height: 20, width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 4px' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#525252', fontSize: 12 }}>
-                <MapPin size={11} style={{ color: '#8b5cf6' }} /> Dhaka, Bangladesh
-              </div>
-            </div>
-          </Reveal>
-        </div>
-
-        {/* Scroll indicator */}
-        <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 10, color: '#404040', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Scroll</span>
-          <div className="scroll-bounce" style={{ width: 1, height: 40, background: 'linear-gradient(to bottom, #8b5cf6, transparent)' }} />
-        </div>
-      </section>
-
-      {/* ═══════════════════════ STATS STRIP ═══════════════════════════ */}
-      <section style={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.015)' }}>
-        <div className="site-wrap">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
-            {[
-              { value: 5, suffix: '+', label: 'Enterprise Projects', icon: Briefcase },
-              { value: 4, suffix: '', label: 'Certifications', icon: Award },
-              { value: 500, suffix: '+', label: 'Club Members Led', icon: Users },
-              { value: 3, suffix: '+', label: 'Years in Tech', icon: Calendar },
-            ].map(({ value, suffix, label, icon: Icon }, i) => (
-              <Reveal key={label} delay={i * 80}>
-                <div className="stat-item" style={{ textAlign: 'center', padding: '32px 24px' }}>
-                  <Icon size={18} style={{ color: '#8b5cf6', marginBottom: 10, display: 'block', margin: '0 auto 10px' }} />
-                  <div style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                    <Counter to={value} suffix={suffix} />
-                  </div>
-                  <div style={{ fontSize: 11, color: '#525252', marginTop: 6, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</div>
+        {items.map((exp) => (
+          <div key={exp._id} className={`timeline-node ${exp.isActive ? 'active' : ''} reveal`}>
+            <div className="timeline-dot" style={{ borderColor: accentColor }}></div>
+            <div className="timeline-content">
+              <div className="flex justify-between items-start flex-wrap gap-2" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap' }}>
+                <div>
+                  <span className="timeline-date">{formatExperiencePeriod(exp)}</span>
+                  <h4 className="timeline-role" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {renderCustomBadge(exp, defaultIcon)}
+                    <span>{exp.roleTitle}</span>
+                  </h4>
+                  <span className="timeline-company">{exp.organization}</span>
+                  {exp.link && (
+                    <a 
+                      href={exp.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="experience-link"
+                      style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '4px', 
+                        marginLeft: '12px',
+                        fontSize: '0.72rem', 
+                        color: 'var(--accent-primary)',
+                        fontWeight: 600
+                      }}
+                    >
+                      Visit Website
+                      <ExternalLink size={10} />
+                    </a>
+                  )}
                 </div>
-              </Reveal>
+                {exp.isActive && (
+                  <span className="timeline-status active">Active</span>
+                )}
+              </div>
+              {exp.bulletPoints && exp.bulletPoints.length > 0 && (
+                <ul className="timeline-points">
+                  {exp.bulletPoints.map((pt: string, idx2: number) => (
+                    <li key={idx2}>{pt}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Helper to map badge input to Lucide outline icon with a neon glow
+  const getAchievementIcon = (badge: string, color: string) => {
+    const iconStyle = { color, filter: `drop-shadow(0 0 8px ${color})`, width: '44px', height: '44px', strokeWidth: 1.5 };
+    const lowerBadge = badge ? badge.toLowerCase().trim() : '';
+
+    if (lowerBadge.includes('medal') || lowerBadge.includes('hero') || lowerBadge.includes('ribbon') || lowerBadge.includes('🏅')) {
+      return <Medal style={iconStyle} />;
+    }
+    if (lowerBadge.includes('trophy') || lowerBadge.includes('hackathon') || lowerBadge.includes('winner') || lowerBadge.includes('first') || lowerBadge.includes('🏆')) {
+      return <Trophy style={iconStyle} />;
+    }
+    if (lowerBadge.includes('graduation') || lowerBadge.includes('education') || lowerBadge.includes('school') || lowerBadge.includes('🎓') || lowerBadge.includes('degree')) {
+      return <GraduationCap style={iconStyle} />;
+    }
+    if (lowerBadge.includes('star') || lowerBadge.includes('⭐')) {
+      return <Star style={iconStyle} />;
+    }
+    if (lowerBadge.includes('crown') || lowerBadge.includes('king') || lowerBadge.includes('president') || lowerBadge.includes('👑')) {
+      return <Crown style={iconStyle} />;
+    }
+    if (lowerBadge.includes('shield') || lowerBadge.includes('security') || lowerBadge.includes('🛡️')) {
+      return <Shield style={iconStyle} />;
+    }
+    if (lowerBadge.includes('cert') || lowerBadge.includes('academic') || lowerBadge.includes('excellence') || lowerBadge.includes('diploma') || lowerBadge.includes('award')) {
+      return <Award style={iconStyle} />;
+    }
+    // Default fallback - if it is single emoji/character, render as text with drop shadow
+    if (badge && badge.length <= 4) {
+      return (
+        <span style={{ fontSize: '2.5rem', filter: `drop-shadow(0 0 10px ${color})` }}>
+          {badge}
+        </span>
+      );
+    }
+    return <Award style={iconStyle} />;
+  };
+
+  // Load backend content
+  const loadData = async () => {
+    try {
+      const settings = await fetchApi('/settings');
+      if (settings && settings.fullName) {
+        setProfile(settings);
+        
+        // Dynamically update site title and description for SEO
+        if (settings.siteName) {
+          document.title = settings.siteName;
+        }
+        if (settings.metaDescription) {
+          const metaDesc = document.querySelector('meta[name="description"]');
+          if (metaDesc) {
+            metaDesc.setAttribute('content', settings.metaDescription);
+          }
+        }
+
+        // Inject dynamic theme design tokens
+        if (settings.designTokens) {
+          const { primaryColor, secondaryColor, fontFamily, backgroundColor, textColor, cardColor } = settings.designTokens;
+          if (primaryColor) {
+            document.documentElement.style.setProperty('--accent-primary', primaryColor);
+          }
+          if (secondaryColor) {
+            document.documentElement.style.setProperty('--accent-secondary', secondaryColor);
+          }
+          if (primaryColor && secondaryColor) {
+            document.documentElement.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`);
+          }
+          if (fontFamily) {
+            document.documentElement.style.setProperty('--font-sans', fontFamily);
+          }
+          if (theme === 'dark') {
+            if (backgroundColor) {
+              document.documentElement.style.setProperty('--bg-primary', backgroundColor);
+              document.documentElement.style.setProperty('--bg-secondary', backgroundColor);
+              document.documentElement.style.setProperty('--bg-tertiary', backgroundColor);
+            }
+            if (textColor) {
+              document.documentElement.style.setProperty('--text-primary', textColor);
+            }
+            if (cardColor) {
+              document.documentElement.style.setProperty('--bg-card', cardColor);
+              document.documentElement.style.setProperty('--bg-card-hover', cardColor);
+            }
+          }
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const projData = await fetchApi('/projects');
+      if (projData) setProjects(projData);
+    } catch (e) {}
+
+    try {
+      const expData = await fetchApi('/experiences');
+      if (expData) setExperiences(expData);
+    } catch (e) {}
+
+    try {
+      const startupData = await fetchApi('/startups');
+      if (startupData) setStartups(startupData);
+    } catch (e) {}
+
+    try {
+      const skillsData = await fetchApi('/skills');
+      if (skillsData) setSkills(skillsData);
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    loadData();
+
+    // Scroll reveal implementation
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+      revealObserver.observe(el);
+    });
+
+    // Scroll handler for navbar glass effect
+    const handleScroll = () => {
+      setNavbarScrolled(window.scrollY > 50);
+
+      // Track active section
+      const sections = ['about', 'skills', 'experience', 'education', 'startups', 'leadership', 'projects', 'credentials', 'achievements', 'contact'];
+      let currentSection = 'home';
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 120 && rect.bottom >= 120) {
+            currentSection = section;
+            break;
+          }
+        }
+      }
+      setActiveNav(currentSection);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      revealObserver.disconnect();
+    };
+  }, [projects, experiences, startups, skills]);
+
+  // Typewriter Loop
+  useEffect(() => {
+    const typewriterRoles = (profile.heroTitles && profile.heroTitles.length > 0)
+      ? profile.heroTitles
+      : [
+          'Trainee Project Coordinator',
+          'Certified Product Owner (CSPO®)',
+          'Bridging Business & Engineering',
+          'Agile Sprint Delivery'
+        ];
+
+    const currentRole = typewriterRoles[roleIndex];
+    if (!currentRole) return;
+
+    if (isDeleting) {
+      if (charIndex > 0) {
+        const timer = setTimeout(() => {
+          setTypewriterText(currentRole.substring(0, charIndex - 1));
+          setCharIndex(charIndex - 1);
+        }, 30);
+        return () => clearTimeout(timer);
+      } else {
+        setIsDeleting(false);
+        setRoleIndex((roleIndex + 1) % typewriterRoles.length);
+      }
+    } else {
+      if (charIndex < currentRole.length) {
+        const timer = setTimeout(() => {
+          setTypewriterText(currentRole.substring(0, charIndex + 1));
+          setCharIndex(charIndex + 1);
+        }, 60);
+        return () => clearTimeout(timer);
+      } else {
+        const timer = setTimeout(() => {
+          setIsDeleting(true);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [charIndex, isDeleting, roleIndex, profile.heroTitles]);
+
+  // CLI Terminal loops
+  useEffect(() => {
+    if (terminalStep >= logs.length) {
+      const resetTimer = setTimeout(() => {
+        setTerminalLines([]);
+        setTerminalStep(0);
+      }, 4000);
+      return () => clearTimeout(resetTimer);
+    }
+
+    const currentLog = logs[terminalStep];
+    let typedIndex = 0;
+    
+    const typingTimer = setInterval(() => {
+      if (typedIndex <= currentLog.text.length) {
+        setCurrentTerminalLine(currentLog.text.substring(0, typedIndex));
+        typedIndex++;
+      } else {
+        clearInterval(typingTimer);
+        setTimeout(() => {
+          setTerminalLines(prev => [...prev, currentLog]);
+          setCurrentTerminalLine('');
+          setTerminalStep(s => s + 1);
+        }, currentLog.type === 'cmd' ? 500 : 200);
+      }
+    }, currentLog.type === 'cmd' ? 35 : 18);
+
+    return () => clearInterval(typingTimer);
+  }, [terminalStep]);
+
+  // Theme Manager
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+
+    if (theme === 'light') {
+      document.documentElement.style.removeProperty('--bg-primary');
+      document.documentElement.style.removeProperty('--bg-secondary');
+      document.documentElement.style.removeProperty('--bg-tertiary');
+      document.documentElement.style.removeProperty('--bg-card');
+      document.documentElement.style.removeProperty('--bg-card-hover');
+      document.documentElement.style.removeProperty('--text-primary');
+    } else if (profile && profile.designTokens) {
+      const { backgroundColor, textColor, cardColor } = profile.designTokens;
+      if (backgroundColor) {
+        document.documentElement.style.setProperty('--bg-primary', backgroundColor);
+        document.documentElement.style.setProperty('--bg-secondary', backgroundColor);
+        document.documentElement.style.setProperty('--bg-tertiary', backgroundColor);
+      }
+      if (textColor) {
+        document.documentElement.style.setProperty('--text-primary', textColor);
+      }
+      if (cardColor) {
+        document.documentElement.style.setProperty('--bg-card', cardColor);
+        document.documentElement.style.setProperty('--bg-card-hover', cardColor);
+      }
+    }
+  }, [theme, profile]);
+
+  // Handle message submission
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactStatus({ type: '', msg: '' });
+
+    if (!contactForm.name.trim() || !contactForm.email.trim() || !contactForm.subject.trim() || !contactForm.message.trim()) {
+      setContactStatus({ type: 'error', msg: 'Please fill in all fields with a valid email.' });
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactForm.email)) {
+      setContactStatus({ type: 'error', msg: 'Please fill in a valid email address.' });
+      return;
+    }
+
+    setContactSending(true);
+    try {
+      const res = await fetchApi('/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactForm)
+      });
+      setContactStatus({ type: 'success', msg: res.message || 'Message sent! I will respond within 24 hours.' });
+      setContactForm({ name: '', email: '', subject: '', message: '' });
+    } catch (err: any) {
+      setContactStatus({ type: 'error', msg: err.message || 'Error sending message. Please try again.' });
+    } finally {
+      setContactSending(false);
+    }
+  };
+
+  // Group skills dynamically by category
+  const groupedSkills: Record<string, { icon: string; items: string[] }> = {};
+  skills.forEach(skill => {
+    if (!groupedSkills[skill.category]) {
+      groupedSkills[skill.category] = { icon: skill.icon || '🛠️', items: [] };
+    }
+    groupedSkills[skill.category].items.push(skill.name);
+  });
+
+  const currentYear = new Date().getFullYear();
+
+  // Create array of active navigation items based on visibility settings
+  const navLinks = [
+    { id: 'about', label: 'About' },
+    ...(profile.sectionVisibility?.showSkills && skills.length > 0 ? [{ id: 'skills', label: 'Skills' }] : []),
+    ...(profile.sectionVisibility?.showExperience && experiences.some(e => e.categoryType === 'Work' || e.categoryType === 'Instruction') ? [{ id: 'experience', label: 'Experience' }] : []),
+    ...(profile.sectionVisibility?.showEducation && experiences.some(e => e.categoryType === 'Education') ? [{ id: 'education', label: 'Education' }] : []),
+    ...(profile.sectionVisibility?.showStartups && startups.length > 0 ? [{ id: 'startups', label: 'Startups' }] : []),
+    ...(profile.sectionVisibility?.showLeadership && experiences.some(e => e.categoryType === 'Leadership') ? [{ id: 'leadership', label: 'Leadership' }] : []),
+    { id: 'projects', label: 'Projects' },
+    ...(profile.sectionVisibility?.showCertifications && experiences.some(e => e.categoryType === 'Certification') ? [{ id: 'credentials', label: 'Credentials' }] : []),
+    ...(profile.sectionVisibility?.showAchievements && experiences.some(e => e.categoryType === 'Achievement') ? [{ id: 'achievements', label: 'Achievements' }] : []),
+    { id: 'contact', label: 'Contact' }
+  ];
+
+  return (
+    <>
+      {/* Ambient animated background */}
+      <div className="ambient-bg">
+        <div className="ambient-blob ambient-blob-1"></div>
+        <div className="ambient-blob ambient-blob-2"></div>
+      </div>
+
+      {/* ─── NAVBAR ─── */}
+      <nav className={`navbar ${navbarScrolled ? 'scrolled' : ''}`} id="navbar">
+        <div className="container nav-container">
+          <a href="#" className="nav-logo">{profile.fullName ? profile.fullName.split(' ').pop()?.toUpperCase() : 'NAFIS'}<span className="accent">.</span></a>
+
+          <div className="nav-links">
+            {navLinks.map(link => (
+              <a
+                key={link.id}
+                href={`#${link.id}`}
+                className={activeNav === link.id ? 'active' : ''}
+              >
+                {link.label}
+              </a>
             ))}
           </div>
+
+          <div className="nav-actions">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="theme-toggle"
+              aria-label="Toggle theme"
+            >
+              <span className="icon-moon">{theme === 'dark' ? '🌙' : '☀️'}</span>
+            </button>
+            <a href={profile.resumeUrl || '/CV of Md. Nafis Sadique Niloy.pdf'} download className="btn-cta btn-primary nav-cv-btn">
+              <Download size={14} style={{ marginRight: '6px' }} />
+              Download CV
+            </a>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="mobile-menu-btn"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? '✕' : '☰'}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
+          {navLinks.map(link => (
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              onClick={() => setMobileMenuOpen(false)}
+              className={activeNav === link.id ? 'active' : ''}
+            >
+              {link.label}
+            </a>
+          ))}
+          <a href={profile.resumeUrl || '/CV of Md. Nafis Sadique Niloy.pdf'} download onClick={() => setMobileMenuOpen(false)}>
+            📄 Download CV
+          </a>
+        </div>
+      </nav>
+
+      {/* ─── HERO SECTION ─── */}
+      <section className="hero" id="hero">
+        <div className="container hero-grid">
+          <div className="hero-content">
+            <div className="hero-badge reveal">
+              <Award size={14} style={{ marginRight: '6px' }} />
+              {profile.heroBadgeText || 'CSPO® Certified Product Owner'}
+            </div>
+
+            <h1 className="reveal">
+              {profile.heroGreeting || 'Hi, I am'}<br />
+              <span className="gradient-text">{profile.fullName ? profile.fullName.split(' ').slice(-2).join(' ') : 'Nafis Niloy'}</span>.
+            </h1>
+
+            <div className="hero-roles reveal">
+              <span>{typewriterText}</span>
+              <span className="cursor-blink"></span>
+            </div>
+
+            <p className="hero-bio reveal">
+              {profile.bioParagraphs?.[0] || ''}
+            </p>
+
+            <div className="hero-ctas reveal">
+              <a href="#projects" className="btn-cta btn-primary">
+                View Projects
+                <span style={{ marginLeft: '6px' }}>➔</span>
+              </a>
+              <a href={profile.resumeUrl || '/CV of Md. Nafis Sadique Niloy.pdf'} download className="btn-cta btn-secondary">
+                <Download size={14} style={{ marginRight: '6px' }} />
+                Resume PDF
+              </a>
+            </div>
+          </div>
+
+          {/* CLI Terminal Simulator */}
+          <div className="terminal reveal-right">
+            <div className="terminal-header">
+              <div className="terminal-dot red"></div>
+              <div className="terminal-dot yellow"></div>
+              <div className="terminal-dot green"></div>
+              <span className="terminal-title">pm-terminal.sh</span>
+            </div>
+            <div className="terminal-body">
+              {terminalLines.map((line, idx) => (
+                <div key={idx} style={{ marginBottom: '4px' }}>
+                  {line.type === 'cmd' ? (
+                    <>
+                      <span className="cmd-prompt">~/nafis-pm$</span> <span className="cmd-text">{line.text}</span>
+                    </>
+                  ) : line.type === 'success' ? (
+                    <span className="cmd-success">{line.text}</span>
+                  ) : (
+                    <span className="cmd-output">{line.text}</span>
+                  )}
+                </div>
+              ))}
+              {terminalStep < logs.length && (
+                <div style={{ marginBottom: '4px' }}>
+                  {logs[terminalStep].type === 'cmd' ? (
+                    <>
+                      <span className="cmd-prompt">~/nafis-pm$</span> <span className="cmd-text">{currentTerminalLine}</span>
+                      <span className="animate-pulse">_</span>
+                    </>
+                  ) : logs[terminalStep].type === 'success' ? (
+                    <span className="cmd-success">{currentTerminalLine}</span>
+                  ) : (
+                    <span className="cmd-output">{currentTerminalLine}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ═══════════════════════ ABOUT SECTION ════════════════════════ */}
-      <section id="about" ref={sections.about} style={{ padding: '100px 0', position: 'relative' }}>
-        <div className="glow" style={{ width: 500, height: 500, top: 0, left: -200, background: 'rgba(139, 92, 246,0.04)' }} />
+      {/* ─── CLIENT MARQUEE ─── */}
+      <div className="client-marquee">
+        <div className="marquee-content">
+          {(() => {
+            const activeClients = (profile.clients && profile.clients.length > 0) ? profile.clients : CLIENTS;
+            return [...activeClients, ...activeClients, ...activeClients].map((client, idx) => (
+              <div key={idx} className="marquee-item">
+                <span>{client.icon}</span> {client.name}
+              </div>
+            ));
+          })()}
+        </div>
+      </div>
 
-        <div className="site-wrap">
-          {/* Section header */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 64, flexWrap: 'wrap', gap: 20 }}>
-            <Reveal>
-              <div>
-                <p className="section-label" style={{ marginBottom: 12 }}>About Me</p>
-                <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>
-                  Career Objective<br />& Competencies
-                </h2>
-                <div className="section-line" style={{ marginTop: 16 }} />
+      {/* ─── ABOUT SECTION ─── */}
+      <section className="section" id="about">
+        <div className="container">
+          <div className="about-grid">
+            <div className="about-photo-frame reveal-left">
+              <img src={profile.avatarUrl || '/profile.png'} alt={profile.fullName} id="about-photo" loading="lazy" />
+            </div>
+
+            <div className="about-info">
+              <span className="section-label reveal">Overview</span>
+              <h2 className="section-title reveal">Who I Am</h2>
+
+              <div className="about-status reveal">
+                <span className="pulse-dot"></span>
+                {profile.aboutStatusText || 'Currently active at ATI Limited — Full-Time'}
               </div>
-            </Reveal>
-            <Reveal delay={100}>
-              <div style={{ maxWidth: 380 }}>
-                <p style={{ fontSize: 13, color: '#737373', lineHeight: 1.8 }}>
-                  Goal-oriented Computer Science graduate and Certified Scrum Product Owner® working as a Project Coordinator. Hands-on experience managing software delivery, requirement elicitation, and Agile execution across ERP and government-sector projects.
+
+              {profile.bioParagraphs?.slice(1).map((para: string, idx: number) => (
+                <p className="about-text reveal" key={idx}>
+                  {para}
                 </p>
+              ))}
+
+              <div className="stats-grid">
+                {[profile.stat1, profile.stat2, profile.stat3, profile.stat4].map((stat, i) => (
+                  <div className="stat-item reveal-scale" key={i}>
+                    <div className="stat-number">
+                      <Counter target={stat?.value || 0} />{stat?.suffix || ''}
+                    </div>
+                    <div className="stat-label">{stat?.label || ''}</div>
+                  </div>
+                ))}
               </div>
-            </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── SKILLS SECTION ─── */}
+      {profile.sectionVisibility?.showSkills && skills.length > 0 && (
+        <section className="section" id="skills">
+          <div className="container">
+            <span className="section-label reveal">Competencies</span>
+            <h2 className="section-title reveal">Technical Arsenal</h2>
+            <p className="section-subtitle reveal">Core skills I bring to project delivery and team coordination.</p>
+
+            <div className="skills-grid">
+              {Object.keys(groupedSkills).map(catName => (
+                <div className="skill-card reveal" key={catName}>
+                  <h3>
+                    <span className="skill-icon" style={{ background: 'rgba(99, 102, 241, 0.08)', color: 'var(--accent-primary)' }}>
+                      {groupedSkills[catName].icon}
+                    </span>
+                    {catName}
+                  </h3>
+                  <div className="skill-tags">
+                    {groupedSkills[catName].items.map(sName => (
+                      <span key={sName} className="skill-tag">{sName}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── WORK EXPERIENCE SECTION ─── */}
+      {profile.sectionVisibility?.showExperience && experiences.some(e => e.categoryType === 'Work' || e.categoryType === 'Instruction') && (
+        <section className="section" id="experience">
+          <div className="container">
+            <span className="section-label reveal">Experience</span>
+            <h2 className="section-title reveal">Work Experience</h2>
+            {renderTimeline(experiences.filter(e => e.categoryType === 'Work' || e.categoryType === 'Instruction'), 'var(--accent-primary)')}
+          </div>
+        </section>
+      )}
+
+      {/* ─── EDUCATION & ACADEMICS SECTION ─── */}
+      {profile.sectionVisibility?.showEducation && experiences.some(e => e.categoryType === 'Education') && (
+        <section className="section" id="education">
+          <div className="container">
+            <span className="section-label reveal">Education</span>
+            <h2 className="section-title reveal">Education & Academics</h2>
+            {renderTimeline(experiences.filter(e => e.categoryType === 'Education'), '#8b5cf6', '🎓')}
+          </div>
+        </section>
+      )}
+
+      {/* ─── STARTUPS & VENTURES SECTION ─── */}
+      {profile.sectionVisibility?.showStartups && startups.length > 0 && (
+        <section className="section" id="startups">
+          <div className="container">
+            <span className="section-label reveal">Ventures</span>
+            <h2 className="section-title reveal">Startups & Ventures</h2>
+            <p className="section-subtitle reveal">Scalable software platforms and digital identities I founded or built.</p>
+
+            <div className="skills-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+              {startups.map(startup => (
+                <div key={startup._id} className="skill-card reveal" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>
+                        <span className="skill-icon" style={{ background: 'rgba(99, 102, 241, 0.08)', color: 'var(--accent-primary)', display: 'inline-flex', alignSelf: 'center', fontSize: '1rem', width: '28px', height: '28px' }}>
+                          {startup.logoUrl ? <img src={startup.logoUrl} alt={startup.brandName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : '🚀'}
+                        </span>
+                        {startup.brandName}
+                      </h3>
+                      <span className={`timeline-status ${startup.isActive ? 'active' : 'completed'}`} style={{ padding: '2px 8px', fontSize: '10px' }}>
+                        {startup.isActive ? 'Active' : 'Ventures'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--accent-secondary)', fontWeight: 600, marginBottom: '6px' }}>
+                      {startup.role}
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: '1.6' }}>
+                      "{startup.philosophy}"
+                    </p>
+                  </div>
+                  {startup.websiteUrl && (
+                    <div style={{ marginTop: '16px' }}>
+                      <a href={startup.websiteUrl} target="_blank" rel="noopener noreferrer" className="credential-link" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '0.78rem', color: 'var(--accent-primary)' }}>
+                        Launch Venture
+                        <ExternalLink size={10} style={{ marginLeft: '4px' }} />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── LEADERSHIP & ACTIVITIES SECTION ─── */}
+      {profile.sectionVisibility?.showLeadership && experiences.some(e => e.categoryType === 'Leadership') && (
+        <section className="section" id="leadership">
+          <div className="container">
+            <span className="section-label reveal">Leadership</span>
+            <h2 className="section-title reveal">Leadership & Activities</h2>
+            {renderTimeline(experiences.filter(e => e.categoryType === 'Leadership'), '#f59e0b', '🌟')}
+          </div>
+        </section>
+      )}
+
+      {/* ─── PROJECTS SECTION ─── */}
+      <section className="section" id="projects">
+        <div className="container">
+          <span className="section-label reveal">Works</span>
+          <h2 className="section-title reveal">Coordinated Projects</h2>
+
+          <div className="filter-container reveal">
+            {[
+              { id: 'all', label: 'All Projects' },
+              { id: 'Enterprise', label: 'Enterprise Modules' },
+              { id: 'Academic', label: 'Academic & Tech' }
+            ].map(filt => (
+              <button
+                key={filt.id}
+                onClick={() => setProjectFilter(filt.id as any)}
+                className={`filter-btn ${projectFilter === filt.id ? 'active' : ''}`}
+              >
+                {filt.label}
+              </button>
+            ))}
           </div>
 
-          {/* ── Two-column: Bio + Skills ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+          <div className="projects-grid">
+            {projects
+              .filter(p => projectFilter === 'all' || p.category === projectFilter)
+              .map(proj => {
+                const isCompleted = proj.status === 'Delivered' || proj.status === 'Completed';
+                const isQA = proj.status === 'In QA';
+                const statusClass = isCompleted ? 'delivered' : isQA ? 'in-qa' : 'in-dev';
+                
+                // SDLC visualization stages
+                let stage = 7;
+                if (proj.status === 'In Progress') stage = 4;
+                if (proj.status === 'Planned') stage = 1;
 
-            {/* Bio card */}
-            <Reveal from="left">
-              <div className="card" style={{ padding: '32px 36px', height: '100%' }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 20 }}>Who I Am</h3>
-
-                <p style={{ fontSize: 13, color: '#737373', lineHeight: 1.85, marginBottom: 20 }}>
-                  My core strength lies in translating business needs into detailed technical requirements, aligning cross-functional teams (Design / Engineering / QA), and ensuring predictability in product releases.
-                </p>
-
-                <p style={{ fontSize: 13, color: '#737373', lineHeight: 1.85, marginBottom: 28 }}>
-                  I look to leverage my skills in a Project or Product Management role to drive delivery efficiency and business value across enterprise and government clients.
-                </p>
-
-                {/* Quick facts grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {[
-                    { icon: MapPin, text: 'Dhaka, Bangladesh', color: '#8b5cf6' },
-                    { icon: Briefcase, text: 'ATI Limited', color: '#60a5fa' },
-                    { icon: CheckCircle, text: 'CSPO® Certified', color: '#34d399' },
-                    { icon: GraduationCap, text: 'BRAC University', color: '#a78bfa' },
-                  ].map(({ icon: Icon, text, color }) => (
-                    <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Icon size={13} style={{ color, flexShrink: 0 }} />
-                      <span style={{ fontSize: 11, color: '#a3a3a3', fontWeight: 600 }}>{text}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Availability badge */}
-                <div style={{ marginTop: 28, padding: '10px 16px', background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399', flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: '#34d399', fontWeight: 600 }}>Available for new opportunities</span>
-                </div>
-              </div>
-            </Reveal>
-
-            {/* Skills */}
-            <Reveal from="right" delay={80}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Skills Portfolio</h3>
-                {Object.entries(skills).map(([cat, list], ci) => {
-                  const colors = ['#8b5cf6', '#60a5fa', '#a78bfa'];
-                  return (
-                    <div key={cat} className="skill-group">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                        <div style={{ width: 3, height: 14, borderRadius: 2, background: colors[ci] }} />
-                        <span style={{ fontSize: 11, fontWeight: 700, color: colors[ci], textTransform: 'uppercase', letterSpacing: '0.08em' }}>{cat}</span>
+                return (
+                  <div key={proj._id} className="project-card reveal" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                    <div>
+                      <div className="project-meta">
+                        <span className="project-client">{proj.client}</span>
+                        <span className={`project-status ${statusClass}`}>{proj.status}</span>
                       </div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {list.map(s => <span key={s} className="tag">{s}</span>)}
+                      
+                      {proj.thumbnailUrl && (
+                        <div style={{ width: '100%', height: '140px', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '14px', border: '1px solid var(--border-primary)' }}>
+                          <img src={proj.thumbnailUrl} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      )}
+
+                      <h4 className="project-title">{proj.title}</h4>
+                      
+                      {/* Visual SDLC Pipeline */}
+                      <div className="sdlc-pipeline" style={{ margin: '12px 0 16px 0' }}>
+                        {SDLC_STAGES.map((s, i) => (
+                          <div key={s} className="pipeline-segment">
+                            <div className={`pipeline-dot ${i < stage ? 'active' : ''}`}>
+                              <span className="pipeline-tooltip">{s}</span>
+                            </div>
+                            {i < SDLC_STAGES.length - 1 && (
+                              <div className={`pipeline-line ${i < stage - 1 ? 'active' : ''}`}></div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <p className="project-desc">{proj.description}</p>
+                    </div>
+
+                    <div>
+                      <div className="project-tags" style={{ marginBottom: '14px' }}>
+                        {proj.technologies?.map((tag: string) => (
+                          <span key={tag} className="project-tag">{tag}</span>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                        {proj.repositoryUrl && (
+                          <a href={proj.repositoryUrl} target="_blank" rel="noopener noreferrer" className="credential-link" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '0.75rem', color: 'var(--accent-primary)' }}>
+                            Repository
+                            <ExternalLink size={10} style={{ marginLeft: '4px' }} />
+                          </a>
+                        )}
+                        {proj.liveUrl && (
+                          <a href={proj.liveUrl} target="_blank" rel="noopener noreferrer" className="credential-link" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '0.75rem', color: 'var(--accent-primary)' }}>
+                            Live Demo
+                            <ExternalLink size={10} style={{ marginLeft: '4px' }} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CREDENTIALS SECTION ─── */}
+      {profile.sectionVisibility?.showCertifications && experiences.some(e => e.categoryType === 'Certification') && (
+        <section className="section" id="credentials">
+          <div className="container">
+            <span className="section-label reveal">Certifications</span>
+            <h2 className="section-title reveal">Professional Credentials</h2>
+
+            <div className="credentials-grid">
+              {experiences
+                .filter(e => e.categoryType === 'Certification')
+                .map(cert => (
+                  <div key={cert._id} className="credential-card reveal">
+                    <div style={{ marginBottom: '14px' }}>
+                      {renderCustomBadge(cert, '🏅')}
+                    </div>
+                    <div className="credential-title">{cert.roleTitle}</div>
+                    <div className="credential-meta">
+                      <span>{cert.organization}</span>
+                      <span>{formatExperiencePeriod(cert)}</span>
+                    </div>
+                    {cert.bulletPoints?.[0] && <span className="credential-id">ID: {cert.bulletPoints[0]}</span>}
+                    {(cert.link || cert.bulletPoints?.[1]) && (
+                      <a href={cert.link || cert.bulletPoints[1]} target="_blank" rel="noopener noreferrer" className="credential-link">
+                        Verify Credential
+                        <ExternalLink size={10} style={{ marginLeft: '4px' }} />
+                      </a>
+                    )}
+                  </div>
+                ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── RECOGNITION & LEADERSHIP (ACHIEVEMENTS) ─── */}
+      {profile.sectionVisibility?.showAchievements && experiences.some(e => e.categoryType === 'Achievement') && (
+        <section className="section" id="achievements">
+          <div className="container">
+            <span className="section-label reveal">Recognition</span>
+            <h2 className="section-title reveal">Recognition & Leadership</h2>
+            
+            <div className="recognition-container">
+              {experiences
+                .filter(e => e.categoryType === 'Achievement')
+                .map((ach) => {
+                  const accentColor = ach.badgeTextColor || '#ef4444';
+                  const badgeIcon = ach.badge || '🏆';
+                  return (
+                    <div 
+                      key={ach._id} 
+                      className="recognition-card reveal" 
+                      style={{ 
+                        '--card-accent': accentColor,
+                        '--card-accent-glow': accentColor + '22',
+                        borderColor: accentColor
+                      } as React.CSSProperties}
+                    >
+                      {/* Diagonal Glass divider line overlay */}
+                      <div className="recognition-card-glare"></div>
+                      
+                      {/* Card Content wrapper */}
+                      <div className="recognition-card-content">
+                        {/* Centered glowing outline icon */}
+                        <div className="recognition-card-icon-wrap">
+                          {getAchievementIcon(badgeIcon, accentColor)}
+                        </div>
+                        
+                        {/* Glowing Title */}
+                        <h3 className="recognition-card-title">{ach.roleTitle}</h3>
+                        
+                        {/* White/Off-white Subtitle (Organization) */}
+                        <span className="recognition-card-subtitle">{ach.organization}</span>
+                        
+                        {/* Extra bullet points / details */}
+                        {ach.bulletPoints && ach.bulletPoints.length > 0 && (
+                          <div className="recognition-card-details">
+                            {ach.bulletPoints.join(', ')}
+                          </div>
+                        )}
+
+                        {/* Visit link */}
+                        {ach.link && (
+                          <a 
+                            href={ach.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="achievement-link"
+                            style={{ 
+                              display: 'inline-flex', 
+                              alignItems: 'center', 
+                              gap: '4px', 
+                              marginTop: '8px',
+                              fontSize: '0.8rem', 
+                              color: accentColor, 
+                              fontWeight: 700,
+                              textDecoration: 'none',
+                              filter: `drop-shadow(0 0 4px ${accentColor}44)`
+                            }}
+                          >
+                            View Achievement / Certificate
+                            <ExternalLink size={11} />
+                          </a>
+                        )}
                       </div>
                     </div>
                   );
                 })}
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ PROJECTS ══════════════════════════════ */}
-      <section id="projects" ref={sections.projects} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(255,255,255,0.008)' }}>
-        <div className="glow" style={{ width: 600, height: 600, top: 0, right: -200, background: 'rgba(139, 92, 246,0.04)' }} />
-
-        <div className="site-wrap">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 56, flexWrap: 'wrap', gap: 20 }}>
-            <Reveal>
-              <div>
-                <p className="section-label" style={{ marginBottom: 12 }}>Portfolio</p>
-                <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>
-                  Coordinated<br />Projects
-                </h2>
-                <div className="section-line" style={{ marginTop: 16 }} />
-              </div>
-            </Reveal>
-            <Reveal delay={80}>
-              <div style={{ padding: '8px 14px', background: 'rgba(139, 92, 246,0.08)', border: '1px solid rgba(139, 92, 246,0.18)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <Briefcase size={13} style={{ color: '#8b5cf6' }} />
-                <span style={{ fontSize: 12, color: '#a78bfa', fontWeight: 600 }}>ATI Limited — Enterprise Delivery</span>
-              </div>
-            </Reveal>
-          </div>
-
-          {/* ── Feature card (first) + grid ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20, marginBottom: 20 }}>
-
-            {/* Featured project */}
-            <div style={{ gridColumn: 'span 5' }}>
-              <Reveal from="left" style={{ height: '100%' }}>
-                <div className="proj-card" style={{ height: '100%' }}>
-                  <span className="pill" style={{ alignSelf: 'flex-start' }}>Bangladesh Navy</span>
-                  <h3 style={{ fontSize: 20, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.02em' }}>Budget Management System</h3>
-                  <p style={{ fontSize: 12, color: '#737373', lineHeight: 1.8 }}>
-                    Led requirement elicitation and delivery coordination of budget workflow modules with engineering teams. Acted as stakeholder liaison to lock scope and manage change requests across phased rollout.
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 'auto' }}>
-                    {['Scope Management', 'Backlog Tracking', 'Agile Execution'].map(t => <span key={t} className="tag">{t}</span>)}
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-
-            {/* Right side 2×2 grid */}
-            <div style={{ gridColumn: 'span 7', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              {[
-                { title: 'NATDOC Website (CMS)', client: 'Bangladesh Navy', tags: ['SRS', 'CMS', 'Requirement Eng.'], desc: 'On-site requirement validation, finalized SRS for content structures and approval workflows.' },
-                { title: 'ERP Modules (HR, Payroll)', client: 'Jamuna Oil Co.', tags: ['Gap Analysis', 'ERP', 'Timeline Tracking'], desc: 'Gap analysis and requirement detailing for HR and Payroll ERP modules.' },
-                { title: 'University CMS Portal', client: 'Bangladesh Maritime Uni.', tags: ['Content Migration', 'CMS', 'Issue Triage'], desc: 'Coordinated full redesign, content migration, and rollout workflows.' },
-                { title: 'Healthcare Platform', client: 'Ghana Client', tags: ['Multi-Tenant', 'Cross-Border'], desc: 'Multi-tenant platform delivery across multiple hospital systems, cross-border coordination.' },
-              ].map((p, i) => (
-                <Reveal key={p.title} delay={i * 60}>
-                  <div className="proj-card" style={{ height: '100%' }}>
-                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8b5cf6', background: 'rgba(139, 92, 246,0.08)', border: '1px solid rgba(139, 92, 246,0.15)', padding: '3px 8px', borderRadius: 6, alignSelf: 'flex-start', display: 'inline-block' }}>{p.client}</span>
-                    <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{p.title}</h4>
-                    <p style={{ fontSize: 11, color: '#737373', lineHeight: 1.7, flexGrow: 1 }}>{p.desc}</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 'auto' }}>
-                      {p.tags.map(t => <span key={t} className="tag" style={{ fontSize: 9 }}>{t}</span>)}
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
             </div>
           </div>
+        </section>
+      )}
 
-          {/* Academic row */}
-          <div style={{ marginTop: 40 }}>
-            <Reveal>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-                <GraduationCap size={15} style={{ color: '#a78bfa' }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Academic Engineering</span>
-              </div>
-            </Reveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-              {[
-                { title: 'USIS 3.0 Student Portal', desc: 'Student portal with schedule planning and course selection optimization. Built to demonstrate full-stack architectural integration.', tech: 'React · TypeScript · MongoDB · Tailwind' },
-                { title: 'BRACU OCA System', desc: 'Club activity tracker and event approval workflow automation for the BRAC University Office of Co-Curricular Activities.', tech: 'Next.js · React · MongoDB' },
-              ].map((p, i) => (
-                <Reveal key={p.title} delay={i * 80}>
-                  <div className="proj-card">
-                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#a78bfa', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.18)', padding: '3px 8px', borderRadius: 6, display: 'inline-block' }}>Academic</span>
-                    <h4 style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.3 }}>{p.title}</h4>
-                    <p style={{ fontSize: 12, color: '#737373', lineHeight: 1.7 }}>{p.desc}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                      <Code size={11} style={{ color: '#8b5cf6' }} />
-                      <span style={{ fontSize: 10, color: '#525252' }}>{p.tech}</span>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ─── CONTACT SECTION ─── */}
+      <section className="section" id="contact">
+        <div className="container">
+          <span className="section-label reveal">Connect</span>
+          <h2 className="section-title reveal">Get In Touch</h2>
 
-      {/* ═══════════════════════ EXPERIENCE ════════════════════════════ */}
-      <section id="experience" ref={sections.experience} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-
-        <div className="site-wrap">
-          <Reveal style={{ marginBottom: 64 }}>
-            <p className="section-label" style={{ marginBottom: 12 }}>My Journey</p>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>
-              Experience &<br />Credentials
-            </h2>
-            <div className="section-line" style={{ marginTop: 16 }} />
-          </Reveal>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 32 }}>
-
-            {/* ── LEFT: Work + Education ── */}
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 28 }}>Work Experience</p>
-
-              {/* Timeline */}
-              <div style={{ position: 'relative' }}>
-                <div className="tl-line" />
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 32, paddingLeft: 52 }}>
-                  {[
-                    {
-                      date: 'Jan 2026 – Present', role: 'Trainee Project Coordinator', company: 'ATI Limited',
-                      status: 'Active', statusColor: '#34d399', statusBg: 'rgba(52,211,153,0.08)', statusBorder: 'rgba(52,211,153,0.2)',
-                      points: ['Coordinating delivery of ERP, government, and web platform projects.', 'Supporting BRD/SRS inputs, sprint tracking, cross-team alignment with Dev/QA/Design.', 'Assisting UAT, release readiness, and stakeholder communication.'],
-                    },
-                    {
-                      date: 'Oct 2025 – Dec 2025', role: 'Project Management Intern', company: 'ATI Limited',
-                      status: 'Completed', statusColor: '#737373', statusBg: 'rgba(115,115,115,0.08)', statusBorder: 'rgba(115,115,115,0.2)',
-                      points: ['Supported requirement elicitation, backlog refinement, and sprint reviews.', 'Facilitated developer follow-ups to maintain sprint goals.'],
-                    },
-                  ].map((exp, ei) => (
-                    <Reveal key={ei} delay={ei * 100}>
-                      <div style={{ position: 'relative' }}>
-                        {/* Timeline dot */}
-                        <div className="tl-dot" style={{ position: 'absolute', left: -42, top: 6 }} />
-
-                        <div className="card" style={{ padding: '20px 24px' }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-                            <div>
-                              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{exp.role}</h3>
-                              <p style={{ fontSize: 12, color: '#8b5cf6', fontWeight: 600 }}>{exp.company}</p>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                              <span style={{ fontSize: 9, fontWeight: 700, padding: '3px 8px', borderRadius: 999, background: exp.statusBg, color: exp.statusColor, border: `1px solid ${exp.statusBorder}` }}>{exp.status}</span>
-                              <span style={{ fontSize: 10, color: '#525252' }}>{exp.date}</span>
-                            </div>
-                          </div>
-                          <ul style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {exp.points.map((pt, pi) => (
-                              <li key={pi} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#8b5cf6', flexShrink: 0, marginTop: 6 }} />
-                                <span style={{ fontSize: 11, color: '#737373', lineHeight: 1.7 }}>{pt}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </Reveal>
-                  ))}
+          <div className="contact-grid">
+            <div className="contact-info">
+              <div className="contact-card reveal">
+                <div className="contact-icon email-icon">
+                  <Mail size={18} />
                 </div>
-              </div>
-
-              {/* Education */}
-              <Reveal delay={200} style={{ marginTop: 32 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Education</p>
-                <div className="card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <GraduationCap size={20} style={{ color: '#a78bfa' }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h4 style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>B.Sc. in Computer Science</h4>
-                    <p style={{ fontSize: 12, color: '#a3a3a3', marginTop: 2 }}>BRAC University</p>
-                    <p style={{ fontSize: 11, color: '#525252', marginTop: 2 }}>CGPA: 3.27/4.00 · Jun 2021 – Sep 2025</p>
-                  </div>
-                  <span style={{ fontSize: 9, padding: '4px 10px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.2)', color: '#a78bfa', borderRadius: 999, fontWeight: 700 }}>Done</span>
-                </div>
-              </Reveal>
-            </div>
-
-            {/* ── RIGHT: Leadership + Certifications ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-              {/* Leadership */}
-              <Reveal from="right">
-                <div className="card" style={{ padding: '24px 28px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                    <Users size={16} style={{ color: '#34d399' }} />
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Leadership</h3>
-                  </div>
-                  {[
-                    { role: 'President', org: 'BRAC University Computer Club (BUCC)', period: 'Oct 2023 – Dec 2024' },
-                    { role: 'Senior Executive, HR', org: 'BRAC University Computer Club (BUCC)', period: 'Jun 2022 – Oct 2023' },
-                  ].map((l, li) => (
-                    <div key={li} style={{ padding: '14px 0', borderBottom: li === 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                      <h4 style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{l.role}</h4>
-                      <p style={{ fontSize: 11, color: '#34d399', fontWeight: 600, marginBottom: 2 }}>{l.org}</p>
-                      <p style={{ fontSize: 10, color: '#525252' }}>{l.period}</p>
-                    </div>
-                  ))}
-                  <p style={{ fontSize: 11, color: '#737373', lineHeight: 1.75, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 4 }}>
-                    Led <strong style={{ color: '#d4d4d4' }}>500+ active members</strong>. Founded R&D Department and Web & App Team. Directed <strong style={{ color: '#d4d4d4' }}>IntraHacktive 1.0</strong> hackathon end-to-end.
-                  </p>
-                </div>
-              </Reveal>
-
-              {/* Certifications */}
-              <Reveal from="right" delay={100}>
-                <div className="card" style={{ padding: '24px 28px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                    <Award size={16} style={{ color: '#8b5cf6' }} />
-                    <h3 style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Credentials</h3>
-                  </div>
-                  <div>
-                    {[
-                      { title: 'Certified Scrum Product Owner (CSPO)®', issuer: 'Scrum Alliance', date: 'Jun 2026', id: '2196763', link: 'https://bcert.me/siupsirvv' },
-                      { title: 'Project Initiation: Starting a Successful Project', issuer: 'Google · Coursera', date: 'Apr 2026', id: 'O2WTV45BBNIQ' },
-                      { title: 'Foundations of Project Management', issuer: 'Google · Coursera', date: 'Mar 2026', id: 'CRCUF0HV72LE' },
-                      { title: 'Generative AI for Project Managers', issuer: 'PMI', date: 'Feb 2026' },
-                    ].map((c, ci) => (
-                      <div key={ci} className="cert-row">
-                        <div className="cert-icon"><Award size={14} style={{ color: '#8b5cf6' }} /></div>
-                        <div style={{ flex: 1 }}>
-                          <h4 style={{ fontSize: 12, fontWeight: 700, color: '#fff', lineHeight: 1.4, marginBottom: 3 }}>{c.title}</h4>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
-                            <span style={{ fontSize: 10, color: '#8b5cf6', fontWeight: 600 }}>{c.issuer}</span>
-                            <span style={{ fontSize: 10, color: '#525252' }}>{c.date}</span>
-                          </div>
-                          {c.id && <p style={{ fontSize: 9, color: '#404040', marginTop: 2 }}>ID: {c.id}</p>}
-                          {c.link && (
-                            <a href={c.link} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, color: '#8b5cf6', textDecoration: 'none', marginTop: 4 }}>
-                              Verify <ExternalLink size={8} />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ CONTACT ════════════════════════════════ */}
-      <section id="contact" ref={sections.contact} style={{ padding: '100px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(255,255,255,0.008)' }}>
-        <div className="glow" style={{ width: 600, height: 600, bottom: -100, left: '50%', transform: 'translateX(-50%)', background: 'rgba(139, 92, 246,0.04)' }} />
-
-        <div className="site-wrap-sm" style={{ position: 'relative', zIndex: 1 }}>
-          <Reveal style={{ textAlign: 'center', marginBottom: 60 }}>
-            <p className="section-label" style={{ marginBottom: 12 }}>Let's Talk</p>
-            <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.03em' }}>Get In Touch</h2>
-            <div className="section-line" style={{ margin: '16px auto 0' }} />
-            <p style={{ fontSize: 13, color: '#737373', marginTop: 16, lineHeight: 1.7, maxWidth: 460, margin: '16px auto 0' }}>
-              Open to project coordination, product management, and business analysis opportunities. I respond within 24 hours.
-            </p>
-          </Reveal>
-
-          {/* Contact grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-
-            {/* Info column */}
-            <Reveal from="left">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {[
-                  { icon: Mail, label: 'Email', value: 'mdnafissadiqueniloy@gmail.com', href: 'mailto:mdnafissadiqueniloy@gmail.com' },
-                  { icon: MapPin, label: 'Location', value: 'Bashundhara RA, Dhaka, Bangladesh', href: null },
-                ].map(({ icon: Icon, label, value, href }) => (
-                  <div key={label} className="card" style={{ padding: '18px 22px', display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(139, 92, 246,0.08)', border: '1px solid rgba(139, 92, 246,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Icon size={15} style={{ color: '#8b5cf6' }} />
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{label}</p>
-                      {href ? <a href={href} style={{ fontSize: 12, color: '#a3a3a3', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#8b5cf6')} onMouseLeave={e => (e.currentTarget.style.color = '#a3a3a3')}>{value}</a>
-                        : <p style={{ fontSize: 12, color: '#a3a3a3' }}>{value}</p>}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Social buttons */}
-                <div className="card" style={{ padding: '18px 22px' }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Profiles</p>
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    {[
-                      { icon: Github, href: 'https://github.com/Nafis588', label: 'GitHub' },
-                      { icon: Linkedin, href: 'https://www.linkedin.com/in/nafissn/', label: 'LinkedIn' },
-                    ].map(({ icon: Icon, href, label }) => (
-                      <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ flex: 1, justifyContent: 'center', padding: '9px 0', fontSize: 12 }}>
-                        <Icon size={13} /> {label}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Reveal>
-
-            {/* Form */}
-            <Reveal from="right" delay={100}>
-              <form onSubmit={handleSubmit} className="card" style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Send a Message</h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {[{ id: 'name', placeholder: 'Your Name', type: 'text' }, { id: 'email', placeholder: 'your@email.com', type: 'email' }].map(f => (
-                    <div key={f.id}>
-                      <label htmlFor={f.id} style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{f.id === 'name' ? 'Full Name' : 'Email'}</label>
-                      <input type={f.type} id={f.id} name={f.id} value={(formData as any)[f.id]} onChange={handleInput} placeholder={f.placeholder} className={`form-field ${(formErr as any)[f.id] ? 'err' : ''}`} />
-                    </div>
-                  ))}
-                </div>
-
                 <div>
-                  <label htmlFor="subject" style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Subject</label>
-                  <input type="text" id="subject" name="subject" value={formData.subject} onChange={handleInput} placeholder="Project Inquiry / Opportunity" className={`form-field ${formErr.subject ? 'err' : ''}`} />
-                </div>
-
-                <div>
-                  <label htmlFor="message" style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#525252', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Message</label>
-                  <textarea id="message" name="message" rows={4} value={formData.message} onChange={handleInput} placeholder="Tell me about your opportunity..." className={`form-field ${formErr.message ? 'err' : ''}`} style={{ resize: 'none' }} />
-                </div>
-
-                <button type="submit" disabled={sending} className="btn-primary" style={{ width: '100%', justifyContent: 'center', opacity: sending ? 0.6 : 1, cursor: sending ? 'not-allowed' : 'pointer' }}>
-                  {sending ? 'Sending...' : <><span>Send Message</span><Send size={13} /></>}
-                </button>
-
-                {formStatus.msg && (
-                  <div style={{ padding: '10px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600, background: formStatus.t === 'success' ? 'rgba(52,211,153,0.07)' : 'rgba(239,68,68,0.07)', border: `1px solid ${formStatus.t === 'success' ? 'rgba(52,211,153,0.2)' : 'rgba(239,68,68,0.2)'}`, color: formStatus.t === 'success' ? '#34d399' : '#f87171' }}>
-                    {formStatus.msg}
+                  <div className="contact-card-label">Email Address</div>
+                  <div className="contact-card-value">
+                    <a href={`mailto:${profile.socialLinks?.email}`} id="contact-email">{profile.socialLinks?.email}</a>
                   </div>
-                )}
-              </form>
-            </Reveal>
+                </div>
+              </div>
+
+              <div className="contact-card reveal">
+                <div className="contact-icon location-icon">
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <div className="contact-card-label">Current Location</div>
+                  <div className="contact-card-value" id="contact-location">{profile.location || 'Dhaka & Rangpur, Bangladesh'}</div>
+                </div>
+              </div>
+
+              <div className="contact-socials reveal">
+                <a href={profile.socialLinks?.github} target="_blank" rel="noopener noreferrer" className="social-btn" id="social-github">
+                  GitHub
+                </a>
+                <a href={profile.socialLinks?.linkedin} target="_blank" rel="noopener noreferrer" className="social-btn" id="social-linkedin">
+                  LinkedIn
+                </a>
+              </div>
+            </div>
+
+            <form className="contact-form reveal-right" id="contact-form" onSubmit={handleContactSubmit}>
+              <h3>Send a direct message</h3>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="cf-name">Full Name</label>
+                  <input
+                    type="text"
+                    id="cf-name"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                    className="form-input"
+                    placeholder="Your Name"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="cf-email">Email Address</label>
+                  <input
+                    type="email"
+                    id="cf-email"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    className="form-input"
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="cf-subject">Subject</label>
+                <input
+                  type="text"
+                  id="cf-subject"
+                  value={contactForm.subject}
+                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  className="form-input"
+                  placeholder="Inquiry / Opportunity"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="cf-message">Message</label>
+                <textarea
+                  id="cf-message"
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  className="form-textarea"
+                  placeholder="Details of your opportunity..."
+                  rows={4}
+                  required
+                ></textarea>
+              </div>
+
+              <button type="submit" className="form-submit" id="form-submit" disabled={contactSending}>
+                {contactSending ? 'Sending...' : 'Send Message'}
+                <Send size={14} style={{ marginLeft: '6px' }} />
+              </button>
+
+              {contactStatus.msg && (
+                <div className={`form-status ${contactStatus.type === 'success' ? 'success' : 'error'}`}>
+                  {contactStatus.msg}
+                </div>
+              )}
+            </form>
           </div>
         </div>
       </section>
 
-      {/* ═══════════════════════ FOOTER ═════════════════════════════════ */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '28px 0' }}>
-        <div className="site-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 13, color: '#000' }}>N</div>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#e5e5e5' }}>Nafis Sadique Niloy</p>
-              <p style={{ fontSize: 10, color: '#404040' }}>Project Coordinator · CSPO®</p>
-            </div>
+      {/* ─── FOOTER ─── */}
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-links">
+            <a href={profile.socialLinks?.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href={profile.socialLinks?.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href={`mailto:${profile.socialLinks?.email}`}>Email</a>
           </div>
-          <p style={{ fontSize: 10, color: '#404040' }}>© 2026 Md. Nafis Sadique Niloy · All rights reserved.</p>
-          <div style={{ display: 'flex', gap: 12 }}>
-            {[{ icon: Github, href: 'https://github.com/Nafis588' }, { icon: Linkedin, href: 'https://www.linkedin.com/in/nafissn/' }, { icon: Mail, href: 'mailto:mdnafissadiqueniloy@gmail.com' }].map(({ icon: Icon, href }, i) => (
-              <a key={i} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ color: '#404040', transition: 'color 0.2s' }} onMouseEnter={e => (e.currentTarget.style.color = '#8b5cf6')} onMouseLeave={e => (e.currentTarget.style.color = '#404040')}>
-                <Icon size={15} />
-              </a>
-            ))}
+          <div className="footer-content">
+            &copy; {currentYear} {profile.fullName || 'Md. Nafis Sadique Niloy'}. Built with ❤️
           </div>
         </div>
       </footer>
-
-    </div>
+    </>
   );
 }

@@ -1,0 +1,282 @@
+Software Requirements Specification (SRS)
+Project: Dynamic MERN Portfolio & Headless CMS
+1. System Overview
+The system is a fully dynamic, dual-application portfolio platform consisting of a public-facing frontend and a secured, headless-style administrative backend. Every text block, image, layout sequence, and design token is database-driven. The design will strictly avoid derivative "terminal" or standard "bento-box" themes, utilizing dynamic asymmetric grids, horizontal scroll timelines, and CMS-injected CSS variables for real-time theming.
+
+2. Technology Stack (Strict)
+Database: MongoDB (using Mongoose for Object Data Modeling).
+
+Backend (API): Node.js with Express.js.
+
+Frontend (Public & Admin): React.js (Next.js App Router recommended for SEO/SSR) with Tailwind CSS.
+
+Language: Strict TypeScript (TS) across the entire monorepo.
+
+State Management: Redux Toolkit (RTK) for Admin CMS; React Query for Public Frontend data fetching.
+
+Media Storage: AWS S3 or Cloudinary (integrated via Multer).
+
+3. Functional Requirements
+3.1 Authentication & Security Module
+FR-Auth-01: The system shall restrict access to the /admin/* routes using JWT (JSON Web Tokens).
+
+FR-Auth-02: The system shall enforce a single Master Admin account; password must be hashed via bcrypt prior to database insertion.
+
+FR-Auth-03: The API shall implement rate limiting on the public /api/contact endpoint (max 5 requests per IP per 15 minutes).
+
+3.2 Content Management System (CMS) Module
+FR-CMS-01 (Global Settings): The system shall provide an interface to update siteName, metaDescription, heroGreeting, primaryColor, secondaryColor, and resumeUrl.
+
+FR-CMS-02 (Component Toggles): The system shall allow the admin to toggle the visibility of entire frontend sections (boolean switches for showExperience, showStartups, showCertifications).
+
+FR-CMS-03 (CRUD Operations): The system shall allow Create, Read, Update, and Delete operations for:
+
+Experiences: Including dynamic bullet points for responsibilities.
+
+Projects: Including dynamic arrays for tech stacks and rich text for case studies.
+
+Skills: Grouped dynamically by category names.
+
+FR-CMS-04 (Drag-and-Drop Ordering): The system shall allow the admin to update the sortOrder integer of projects and experiences to dictate their render sequence on the frontend.
+
+FR-CMS-05 (Media Upload): The system shall support image uploads for project thumbnails and startup logos, automatically compressing and storing the URL in the respective MongoDB document.
+
+3.3 Public Frontend Rendering Module
+FR-UI-01 (Dynamic Theming): The frontend shall fetch designTokens from the API on initial load and inject them into the CSS :root variables to instantly apply the admin's chosen color scheme.
+
+FR-UI-02 (Empty State Handling): If an array (e.g., Projects) returns empty, or its visibility boolean is set to false, the frontend component must gracefully unmount without rendering blank containers.
+
+FR-UI-03 (Form Submission): The frontend shall provide a Contact Form that POSTs to the database and alerts the admin via the CMS dashboard.
+
+4. Database Schema & TypeScript Interfaces
+Provide the following interfaces to the Agent to generate Mongoose schemas and strict types.
+
+TypeScript
+// 1. Global Settings & Profile
+export interface IGlobalProfile extends Document {
+  fullName: string;
+  heroGreeting: string;
+  heroTitles: string[];
+  bioParagraphs: string[];
+  designTokens: {
+    primaryColor: string;
+    secondaryColor: string;
+    fontFamily: string;
+  };
+  socialLinks: {
+    github: string;
+    linkedin: string;
+    email: string;
+  };
+  resumeUrl: string;
+  sectionVisibility: {
+    showStartups: boolean;
+    showEducation: boolean;
+    showSkills: boolean;
+  };
+}
+
+// 2. Experience
+export interface IExperience extends Document {
+  roleTitle: string;
+  organization: string;
+  categoryType: 'Work' | 'Education' | 'Instruction' | 'Leadership';
+  periodStart: Date;
+  periodEnd: Date | null; // null = Present
+  isActive: boolean;
+  bulletPoints: string[];
+  sortOrder: number;
+}
+
+// 3. Projects
+export interface IProject extends Document {
+  title: string;
+  client: string;
+  category: 'Enterprise' | 'Academic' | 'Startup';
+  status: 'Delivered' | 'In Progress' | 'Planned';
+  description: string;
+  technologies: string[];
+  repositoryUrl?: string;
+  liveUrl?: string;
+  thumbnailUrl?: string;
+  sortOrder: number;
+}
+
+// 4. Startups & Ventures
+export interface IStartup extends Document {
+  brandName: string;
+  role: string;
+  philosophy: string;
+  websiteUrl?: string;
+  logoUrl?: string;
+  isActive: boolean;
+}
+5. Initial Seed Data (System Content)
+The Agent must write a MongoDB seeding script (seed.ts) using the exact content payloads below to populate the initial state of the portfolio.
+
+5.1 Global Profile Content
+Full Name: Md. Nafis Sadique Niloy
+
+Hero Titles: ["Trainee Project Coordinator", "Computer Science Graduate", "Agile & Product Management Enthusiast"]
+
+Bio Paragraphs:
+
+"I bridge business needs with engineering execution, specializing in Agile project management methodologies, sprint planning, and Work Breakdown Structures (WBS)."
+
+"Currently operating out of Dhaka and Rangpur, my core focus is driving delivery efficiency across enterprise and government clients."
+
+Social Links: Include GitHub and LinkedIn placeholders.
+
+5.2 Experience Content
+Entry 1:
+
+Role: Trainee Project Coordinator
+
+Organization: ATI Limited (Project Management Unit)
+
+Type: Work
+
+Period: Nov 2025 - Present
+
+Bullets: ["Coordinate delivery of ERP, government, and web platform projects.", "Utilize Agile methodologies for sprint-based recovery plans.", "Work closely with engineering directors to define project timelines and feature updates."]
+
+Entry 2:
+
+Role: Project Management Intern
+
+Organization: ATI Limited
+
+Type: Work
+
+Period: Oct 2025 - Completed
+
+Entry 3:
+
+Role: B.Sc. in Computer Science
+
+Organization: BRAC University
+
+Type: Education
+
+Period: Expected 2025
+
+Entry 4:
+
+Role: Programming & Robotics Instructor
+
+Type: Instruction
+
+Period: Completed
+
+Entry 5:
+
+Role: President
+
+Organization: BUCC
+
+Type: Leadership
+
+Period: Completed
+
+5.3 Project Inventory Content
+Project 1:
+
+Title: Bangladesh Navy Budget Management Software (BMS)
+
+Client: Bangladesh Navy
+
+Category: Enterprise
+
+Description: "Spearheaded the development phase and Agile sprint methodology for a comprehensive budget tracking system. (Note: Exclusively focused on financial management, not naval rating systems)."
+
+Tech Stack: ["Agile", "PostgreSQL", "Springboot"]
+
+Project 2:
+
+Title: ERP Modules (HR, Payroll & Bonus)
+
+Client: BMTF
+
+Category: Enterprise
+
+Description: "Managed issue documentation and module stabilization for enterprise payroll and bonus systems."
+
+Project 3:
+
+Title: NATDOC Website (CMS)
+
+Client: Bangladesh Navy
+
+Category: Enterprise
+
+Description: "Finalized Software Requirements Specifications (SRS) on-site at the Lalua Chor naval base."
+
+Project 4:
+
+Title: CSMS Ghana Healthcare Platform
+
+Client: Samson Kofi Larbi
+
+Category: Enterprise
+
+Description: "Coordinated development and support handover for 12 identical medical software installations globally."
+
+Tech Stack: ["React", "PostgreSQL", "Springboot"]
+
+Project 5:
+
+Title: USIS 3.0 Student Portal
+
+Category: Academic
+
+Project 6:
+
+Title: BRACU OCA System
+
+Category: Academic
+
+5.4 Startup/Ventures Content
+Entry 1:
+
+Brand Name: Obscura IT
+
+Role: Founder / Core Developer
+
+Philosophy: "Building scalable digital identities and software solutions."
+
+Status: Active
+
+6. API Endpoint Contract
+The Agent must generate the following Express.js REST routes:
+
+Auth: POST /api/auth/login
+
+Global Settings:
+
+GET /api/settings (Public)
+
+PUT /api/settings (Protected)
+
+Experiences:
+
+GET /api/experiences (Public, ordered by sortOrder)
+
+POST /api/experiences, PUT /api/experiences/:id, DELETE /api/experiences/:id (Protected)
+
+Projects:
+
+GET /api/projects (Public, ordered by sortOrder)
+
+POST /api/projects, PUT /api/projects/:id, DELETE /api/projects/:id (Protected)
+
+Startups:
+
+GET /api/startups (Public)
+
+POST /api/startups, PUT /api/startups/:id, DELETE /api/startups/:id (Protected)
+
+Contact:
+
+POST /api/contact (Public, Rate-limited)
+
+GET /api/contact/messages (Protected)

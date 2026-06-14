@@ -2,19 +2,30 @@
   "name": "portfolio-backend",
   "version": "1.0.0",
   "description": "Express backend for MERN portfolio",
-  "main": "server.js",
+  "main": "server.ts",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node --loader ts-node/esm server.ts",
+    "dev": "nodemon --ignore \"data/*\" --ignore \"messages.json\" --ignore \"*.json\" --exec \"node --loader ts-node/esm\" server.ts",
+    "seed": "node --loader ts-node/esm seed.ts"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongoose": "^8.3.1"
+    "mongoose": "^8.3.1",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.12.7",
+    "nodemon": "^3.1.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.5",
+    "ts-node": "^10.9.2"
   }
 }

@@ -16,3 +16,8 @@ dist/
 build/
 .env
 .env.local
+
+# Local Data / Uploads
+backend/data/
+backend/messages.json
+frontend/public/uploads/
