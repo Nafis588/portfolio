@@ -3,7 +3,7 @@ import {
   Lock, LogOut, Edit, Trash2, Plus, Users, Code, Award, Mail, Upload, Globe, Settings
 } from 'lucide-react';
 
-const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api';
+const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
 
 // Safe fetch wrapper deleted. Handled inside component for 401 logout tracking.
 
