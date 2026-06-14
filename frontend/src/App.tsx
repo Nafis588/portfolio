@@ -7,6 +7,15 @@ import './portfolio.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
 
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads/')) {
+    const backendHost = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
+    return `${backendHost}${url}`;
+  }
+  return url;
+};
+
 // Safe fetch wrapper
 const fetchApi = async (url: string, options?: RequestInit) => {
   try {
@@ -636,7 +645,7 @@ export default function App() {
             >
               <span className="icon-moon">{theme === 'dark' ? '🌙' : '☀️'}</span>
             </button>
-            <a href={profile.resumeUrl || '/CV of Md. Nafis Sadique Niloy.pdf'} download className="btn-cta btn-primary nav-cv-btn">
+            <a href={resolveImageUrl(profile.resumeUrl) || '/CV of Md. Nafis Sadique Niloy.pdf'} download className="btn-cta btn-primary nav-cv-btn">
               <Download size={14} style={{ marginRight: '6px' }} />
               Download CV
             </a>
@@ -662,7 +671,7 @@ export default function App() {
               {link.label}
             </a>
           ))}
-          <a href={profile.resumeUrl || '/CV of Md. Nafis Sadique Niloy.pdf'} download onClick={() => setMobileMenuOpen(false)}>
+          <a href={resolveImageUrl(profile.resumeUrl) || '/CV of Md. Nafis Sadique Niloy.pdf'} download onClick={() => setMobileMenuOpen(false)}>
             📄 Download CV
           </a>
         </div>
@@ -696,7 +705,7 @@ export default function App() {
                 View Projects
                 <span style={{ marginLeft: '6px' }}>➔</span>
               </a>
-              <a href={profile.resumeUrl || '/CV of Md. Nafis Sadique Niloy.pdf'} download className="btn-cta btn-secondary">
+              <a href={resolveImageUrl(profile.resumeUrl) || '/CV of Md. Nafis Sadique Niloy.pdf'} download className="btn-cta btn-secondary">
                 <Download size={14} style={{ marginRight: '6px' }} />
                 Resume PDF
               </a>
@@ -763,7 +772,7 @@ export default function App() {
         <div className="container">
           <div className="about-grid">
             <div className="about-photo-frame reveal-left">
-              <img src={profile.avatarUrl || '/profile.png'} alt={profile.fullName} id="about-photo" loading="lazy" />
+              <img src={resolveImageUrl(profile.avatarUrl) || '/profile.png'} alt={profile.fullName} id="about-photo" loading="lazy" />
             </div>
 
             <div className="about-info">
@@ -862,7 +871,7 @@ export default function App() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                       <h3 style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>
                         <span className="skill-icon" style={{ background: 'rgba(99, 102, 241, 0.08)', color: 'var(--accent-primary)', display: 'inline-flex', alignSelf: 'center', fontSize: '1rem', width: '28px', height: '28px' }}>
-                          {startup.logoUrl ? <img src={startup.logoUrl} alt={startup.brandName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : '🚀'}
+                          {startup.logoUrl ? <img src={resolveImageUrl(startup.logoUrl)} alt={startup.brandName} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : '🚀'}
                         </span>
                         {startup.brandName}
                       </h3>
@@ -948,7 +957,7 @@ export default function App() {
                       
                       {proj.thumbnailUrl && (
                         <div style={{ width: '100%', height: '140px', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '14px', border: '1px solid var(--border-primary)' }}>
-                          <img src={proj.thumbnailUrl} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={resolveImageUrl(proj.thumbnailUrl)} alt={proj.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                       )}
 

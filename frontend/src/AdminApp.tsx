@@ -5,6 +5,15 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
 
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('/uploads/')) {
+    const backendHost = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
+    return `${backendHost}${url}`;
+  }
+  return url;
+};
+
 // Safe fetch wrapper deleted. Handled inside component for 401 logout tracking.
 
 export default function AdminApp() {
@@ -569,7 +578,10 @@ export default function AdminApp() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Avatar / Profile Photo URL</label>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3 items-center">
+                      {profile.avatarUrl && (
+                        <img src={resolveImageUrl(profile.avatarUrl)} alt="Avatar Preview" className="w-10 h-10 rounded-full object-cover border border-slate-800" />
+                      )}
                       <input type="text" value={profile.avatarUrl || ''} onChange={(e) => setProfile({ ...profile, avatarUrl: e.target.value })} className="flex-1 bg-slate-900 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500" />
                       <label className="px-3 py-2 bg-indigo-950 hover:bg-indigo-900 text-indigo-400 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer border border-indigo-900/40">
                         <Upload size={12} />
@@ -1388,9 +1400,12 @@ export default function AdminApp() {
 
                 <div className="space-y-2 border-t border-slate-800 pt-3">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Project Image / Thumbnail URL</label>
-                  <div className="flex gap-2">
-                    <input type="text" value={editingProject.thumbnailUrl || ''} onChange={(e) => setEditingProject({ ...editingProject, thumbnailUrl: e.target.value })} className="flex-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500" />
-                    <label className="px-3 py-2 bg-indigo-950 hover:bg-indigo-900 text-indigo-400 hover:text-indigo-300 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer border border-indigo-900/40">
+                  <div className="flex gap-3 items-center">
+                    {editingProject.thumbnailUrl && (
+                      <img src={resolveImageUrl(editingProject.thumbnailUrl)} alt="Thumbnail Preview" className="w-10 h-10 rounded-lg object-cover border border-slate-800" />
+                    )}
+                    <input type="text" value={editingProject.thumbnailUrl || ''} onChange={(e) => setEditingProject({ ...editingProject, thumbnailUrl: e.target.value })} className="flex-1 bg-slate-955 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500" />
+                    <label className="px-3 py-2 bg-indigo-955 hover:bg-indigo-900 text-indigo-400 hover:text-indigo-300 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer border border-indigo-900/40">
                       <Upload size={12} />
                       Upload
                       <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setEditingProject({ ...editingProject, thumbnailUrl: url }))} className="hidden" />
@@ -1952,8 +1967,11 @@ export default function AdminApp() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Logo Image URL</label>
-                    <div className="flex gap-2">
-                      <input type="text" value={editingStartup.logoUrl || ''} onChange={(e) => setEditingStartup({ ...editingStartup, logoUrl: e.target.value })} className="flex-1 bg-slate-950 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none" />
+                    <div className="flex gap-3 items-center">
+                      {editingStartup.logoUrl && (
+                        <img src={resolveImageUrl(editingStartup.logoUrl)} alt="Logo Preview" className="w-8 h-8 rounded-lg object-contain border border-slate-800 bg-slate-950 p-0.5" />
+                      )}
+                      <input type="text" value={editingStartup.logoUrl || ''} onChange={(e) => setEditingStartup({ ...editingStartup, logoUrl: e.target.value })} className="flex-1 bg-slate-955 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none" />
                       <label className="px-2 py-1.5 bg-indigo-950 hover:bg-indigo-900 text-indigo-400 text-xs font-bold rounded-xl flex items-center gap-1 cursor-pointer">
                         <Upload size={12} />
                         <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setEditingStartup({ ...editingStartup, logoUrl: url }))} className="hidden" />

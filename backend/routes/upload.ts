@@ -7,7 +7,12 @@ import { authMiddleware } from '../utils/auth.js';
 const router = express.Router();
 
 // Upload path target inside the frontend public asset directory
-const UPLOAD_DIR = path.join(process.cwd(), '..', 'frontend', 'public', 'uploads');
+let UPLOAD_DIR = path.join(process.cwd(), '..', 'frontend', 'public', 'uploads');
+
+// Fallback to local directory if parent frontend does not exist
+if (!fs.existsSync(path.join(process.cwd(), '..', 'frontend'))) {
+  UPLOAD_DIR = path.join(process.cwd(), 'uploads');
+}
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   try {

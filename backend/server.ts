@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
 import connectDB from './config/db.js';
 import contactRoutes from './routes/contact.js';
 import authRoutes, { seedAdminIfNeeded } from './routes/auth.js';
@@ -40,6 +42,18 @@ app.use('/api/startups', startupRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/upload', uploadRoutes);
 
+// Serve uploads folder statically
+const UPLOADS_PATH = path.join(process.cwd(), '..', 'frontend', 'public', 'uploads');
+if (fs.existsSync(UPLOADS_PATH)) {
+  app.use('/uploads', express.static(UPLOADS_PATH));
+} else {
+  const LOCAL_UPLOADS = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(LOCAL_UPLOADS)) {
+    fs.mkdirSync(LOCAL_UPLOADS, { recursive: true });
+  }
+  app.use('/uploads', express.static(LOCAL_UPLOADS));
+}
+
 // Root Endpoint
 app.get('/', (req: Request, res: Response) => {
   res.send('Portfolio Headless CMS API is running...');
@@ -50,3 +64,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
+
+export default app;
