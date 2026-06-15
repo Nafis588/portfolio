@@ -685,6 +685,26 @@ ul, ol {
   transform: scale(1.03);
 }
 
+.about-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  text-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  font-family: var(--font-primary);
+  letter-spacing: -0.05em;
+  transition: transform var(--transition-slow);
+}
+
+.about-photo-frame:hover .about-photo-placeholder {
+  transform: scale(1.03);
+}
+
 .about-text {
   font-size: 0.92rem;
   color: var(--text-secondary);

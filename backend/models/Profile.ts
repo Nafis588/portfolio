@@ -40,11 +40,27 @@ export interface IGlobalProfile extends Document {
   stat4: { value: number; suffix: string; label: string };
   location: string;
   clients: { name: string; icon: string }[];
+  visitCount?: number;
+  showVisitorCount?: boolean;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPass?: string;
+  smtpFrom?: string;
+  smtpTo?: string;
 }
 
 const ProfileSchema: Schema = new Schema(
   {
     fullName: { type: String, required: true, default: 'Md. Nafis Sadique Niloy' },
+    visitCount: { type: Number, default: 0 },
+    showVisitorCount: { type: Boolean, default: false },
+    smtpHost: { type: String, default: '' },
+    smtpPort: { type: Number, default: 587 },
+    smtpUser: { type: String, default: '' },
+    smtpPass: { type: String, default: '' },
+    smtpFrom: { type: String, default: '' },
+    smtpTo: { type: String, default: 'mdnafissadiqueniloy@gmail.com' },
     siteName: { type: String, required: true, default: 'Nafis Niloy Portfolio' },
     metaDescription: { type: String, required: true, default: 'Md. Nafis Sadique Niloy - Certified Scrum Product Owner (CSPO) & Trainee Project Coordinator' },
     heroGreeting: { type: String, required: true, default: 'Hi, I am' },

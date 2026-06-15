@@ -27,7 +27,7 @@ export async function seedProfileIfNeeded() {
             'I bridge business needs with engineering execution, specializing in Agile project management methodologies, sprint planning, and Work Breakdown Structures (WBS).',
             'Currently operating out of Dhaka and Rangpur, my core focus is driving delivery efficiency across enterprise and government clients.'
           ],
-          avatarUrl: '/profile.png',
+          avatarUrl: '',
           heroBadgeText: 'CSPO® Certified Product Owner',
           aboutStatusText: 'Currently active at ATI Limited — Full-Time',
           designTokens: {
@@ -82,11 +82,17 @@ export async function seedProfileIfNeeded() {
 // @access  Public
 router.get('/', async (req: Request, res: Response) => {
   const isDbConnected = mongoose.connection.readyState === 1;
+  const increment = req.query.increment === 'true';
 
   try {
     let profile;
     if (isDbConnected) {
-      profile = await Profile.findOne({});
+      if (increment) {
+        profile = await Profile.findOneAndUpdate({}, { $inc: { visitCount: 1 } }, { new: true });
+      }
+      if (!profile) {
+        profile = await Profile.findOne({});
+      }
       if (!profile) {
         profile = await Profile.create({
           fullName: 'Md. Nafis Sadique Niloy',
@@ -102,7 +108,7 @@ router.get('/', async (req: Request, res: Response) => {
             'I bridge business needs with engineering execution, specializing in Agile project management methodologies, sprint planning, and Work Breakdown Structures (WBS).',
             'Currently operating out of Dhaka and Rangpur, my core focus is driving delivery efficiency across enterprise and government clients.'
           ],
-          avatarUrl: '/profile.png',
+          avatarUrl: '',
           heroBadgeText: 'CSPO® Certified Product Owner',
           aboutStatusText: 'Currently active at ATI Limited — Full-Time',
           designTokens: {
@@ -140,13 +146,30 @@ router.get('/', async (req: Request, res: Response) => {
             { name: 'Bangladesh Maritime University', icon: '🎓' },
             { name: 'ATI Limited', icon: '💼' },
             { name: 'Ghana Healthcare Client', icon: '🏥' }
-          ]
+          ],
+          visitCount: increment ? 1 : 0,
+          showVisitorCount: false
         });
       }
     } else {
       profile = fallbackProfile.get();
+      if (increment) {
+        profile.visitCount = (profile.visitCount || 0) + 1;
+        fallbackProfile.save(profile);
+      }
     }
-    res.json(profile);
+
+    const cleanProfile = typeof (profile as any).toObject === 'function'
+      ? (profile as any).toObject()
+      : { ...profile };
+    delete cleanProfile.smtpHost;
+    delete cleanProfile.smtpPort;
+    delete cleanProfile.smtpUser;
+    delete cleanProfile.smtpPass;
+    delete cleanProfile.smtpFrom;
+    delete cleanProfile.smtpTo;
+
+    res.json(cleanProfile);
   } catch (err: any) {
     res.status(500).json({ message: err.message });
   }

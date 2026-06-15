@@ -7,25 +7,35 @@ import connectDB from './config/db.js';
 import contactRoutes from './routes/contact.js';
 import authRoutes, { seedAdminIfNeeded } from './routes/auth.js';
 import profileRoutes, { seedProfileIfNeeded } from './routes/profile.js';
-import projectRoutes, { seedProjectsIfNeeded } from './routes/projects.js';
-import experienceRoutes, { seedExperiencesIfNeeded } from './routes/experiences.js';
-import startupRoutes, { seedStartupsIfNeeded } from './routes/startups.js';
-import skillRoutes, { seedSkillsIfNeeded } from './routes/skills.js';
+import projectRoutes from './routes/projects.js';
+import experienceRoutes from './routes/experiences.js';
+import startupRoutes from './routes/startups.js';
+import skillRoutes from './routes/skills.js';
 import uploadRoutes from './routes/upload.js';
 
 dotenv.config();
 
+import mongoose from 'mongoose';
+
 // Cached DB connection promise for serverless reuse
 let dbReady: Promise<void> | null = null;
 function ensureDB() {
+  if (mongoose.connection.readyState === 1) {
+    return Promise.resolve();
+  }
+
   if (!dbReady) {
     dbReady = connectDB().then(async () => {
-      await seedAdminIfNeeded();
-      await seedProfileIfNeeded();
-      await seedProjectsIfNeeded();
-      await seedExperiencesIfNeeded();
-      await seedStartupsIfNeeded();
-      await seedSkillsIfNeeded();
+      if (mongoose.connection.readyState === 1) {
+        await seedAdminIfNeeded();
+        await seedProfileIfNeeded();
+      } else {
+        // Reset cached promise so next request tries connecting again
+        dbReady = null;
+      }
+    }).catch((err) => {
+      dbReady = null;
+      console.error('Database connection error:', err);
     });
   }
   return dbReady;

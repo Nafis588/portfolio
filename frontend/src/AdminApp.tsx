@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Lock, LogOut, Edit, Trash2, Plus, Users, Code, Award, Mail, Upload, Globe, Settings
+  Lock, LogOut, Edit, Trash2, Plus, Users, Code, Award, Mail, Upload, Globe, Settings, Shield
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api');
@@ -47,7 +47,7 @@ export default function AdminApp() {
     heroGreeting: 'Hi, I am',
     heroTitles: [],
     bioParagraphs: [],
-    avatarUrl: '/profile.png',
+    avatarUrl: '',
     heroBadgeText: 'CSPO® Certified Product Owner',
     aboutStatusText: 'Currently active at ATI Limited — Full-Time',
     designTokens: {
@@ -81,7 +81,125 @@ export default function AdminApp() {
   // Admin login & state
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginErr, setLoginErr] = useState('');
-  const [adminTab, setAdminTab] = useState<'profile' | 'projects' | 'work-exp' | 'education' | 'leadership' | 'certifications' | 'achievements' | 'startups' | 'skills' | 'messages'>('profile');
+  const [loginView, setLoginView] = useState<'login' | 'forgot' | 'reset'>('login');
+  const [resetTokenParam, setResetTokenParam] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
+  const [forgotErr, setForgotErr] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetSuccessMsg, setResetSuccessMsg] = useState('');
+  const [resetErr, setResetErr] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const [adminTab, setAdminTab] = useState<'profile' | 'projects' | 'work-exp' | 'education' | 'leadership' | 'certifications' | 'achievements' | 'startups' | 'skills' | 'messages' | 'security'>('profile');
+
+  // Security Tab state variables
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [changeNewPassword, setChangeNewPassword] = useState('');
+  const [changeConfirmPassword, setChangeConfirmPassword] = useState('');
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangePasswordError('');
+    setChangePasswordSuccess('');
+
+    if (changeNewPassword !== changeConfirmPassword) {
+      setChangePasswordError('Passwords do not match.');
+      return;
+    }
+
+    setChangePasswordLoading(true);
+
+    try {
+      const data = await fetchApi('/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword: changeNewPassword })
+      });
+      setChangePasswordSuccess(data.message || 'Password changed successfully!');
+      setCurrentPassword('');
+      setChangeNewPassword('');
+      setChangeConfirmPassword('');
+    } catch (err: any) {
+      setChangePasswordError(err.message || 'Failed to change password.');
+    } finally {
+      setChangePasswordLoading(false);
+    }
+  };
+
+  // Parse reset token on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('resetToken');
+    if (token) {
+      setResetTokenParam(token);
+      setLoginView('reset');
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+  }, []);
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotErr('');
+    setForgotSuccessMsg('');
+    setForgotLoading(true);
+
+    try {
+      const data = await fetchApi('/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+      setForgotSuccessMsg(data.message || 'Verification link sent to email.');
+      setForgotEmail('');
+    } catch (err: any) {
+      setForgotErr(err.message || 'Failed to request password reset link.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetErr('');
+    setResetSuccessMsg('');
+
+    if (newPassword !== confirmPassword) {
+      setResetErr('Passwords do not match');
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const data = await fetchApi('/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetTokenParam, password: newPassword })
+      });
+      setResetSuccessMsg(data.message || 'Password reset successful! You can now log in.');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => {
+        setLoginView('login');
+        setResetSuccessMsg('');
+      }, 3000);
+    } catch (err: any) {
+      setResetErr(err.message || 'Failed to reset password.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   // Admin CRUD states
   const [editingProject, setEditingProject] = useState<any>(null);
@@ -414,57 +532,199 @@ export default function AdminApp() {
       
       {/* SECURE LOGIN CARD */}
       {!adminToken ? (
-        <div className="max-w-md mx-auto my-24 bg-slate-950 border border-slate-900 rounded-2xl p-8 space-y-6 shadow-2xl">
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-xl bg-indigo-950/50 border border-indigo-800/30 flex items-center justify-center text-indigo-400 mx-auto">
-              <Lock size={20} />
+        loginView === 'login' ? (
+          <div className="max-w-md mx-auto my-24 bg-slate-950 border border-slate-900 rounded-2xl p-8 space-y-6 shadow-2xl">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-xl bg-indigo-950/50 border border-indigo-800/30 flex items-center justify-center text-indigo-400 mx-auto">
+                <Lock size={20} />
+              </div>
+              <h2 className="text-xl font-black tracking-tight text-slate-100">Secure CMS Login</h2>
+              <p className="text-xs text-slate-500">Authorized portfolio administration.</p>
             </div>
-            <h2 className="text-xl font-black tracking-tight text-slate-100">Secure CMS Login</h2>
-            <p className="text-xs text-slate-500">Authorized portfolio administration.</p>
-          </div>
 
-          <form onSubmit={handleAdminLogin} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Admin Email</label>
-              <input
-                type="email"
-                required
-                value={loginForm.email}
-                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 placeholder-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
-                placeholder="admin@nafis.info"
-              />
-            </div>
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Admin Email</label>
+                <input
+                  type="email"
+                  required
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 placeholder-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
+                  placeholder="admin@nafis.info"
+                />
+              </div>
+              
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Password</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginView('forgot');
+                      setLoginErr('');
+                    }}
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold focus:outline-none cursor-pointer"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 placeholder-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <button type="submit" className="w-full bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg transition-colors cursor-pointer">
+                Log In
+              </button>
+            </form>
+
+            {loginErr && (
+              <div className="p-3 bg-rose-950/30 border border-rose-800/20 rounded-xl text-rose-400 text-xs font-semibold text-center">
+                {loginErr}
+              </div>
+            )}
             
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Password</label>
-              <input
-                type="password"
-                required
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 placeholder-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
-                placeholder="••••••••"
-              />
+            <div className="text-center pt-2">
+              <a href="/" className="text-xs text-slate-500 hover:text-slate-300 underline">
+                Return to public portfolio
+              </a>
             </div>
-
-            <button type="submit" className="w-full bg-indigo-500 hover:bg-indigo-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg transition-colors cursor-pointer">
-              Log In
-            </button>
-          </form>
-
-          {loginErr && (
-            <div className="p-3 bg-rose-950/30 border border-rose-800/20 rounded-xl text-rose-400 text-xs font-semibold text-center">
-              {loginErr}
-            </div>
-          )}
-          
-          <div className="text-center pt-2">
-            <a href="/" className="text-xs text-slate-500 hover:text-slate-300 underline">
-              Return to public portfolio
-            </a>
           </div>
-        </div>
+        ) : loginView === 'forgot' ? (
+          <div className="max-w-md mx-auto my-24 bg-slate-950 border border-slate-900 rounded-2xl p-8 space-y-6 shadow-2xl">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-xl bg-indigo-950/50 border border-indigo-800/30 flex items-center justify-center text-indigo-400 mx-auto">
+                <Lock size={20} />
+              </div>
+              <h2 className="text-xl font-black tracking-tight text-slate-100">Forgot Password</h2>
+              <p className="text-xs text-slate-500">Enter your email to receive a secure password reset link.</p>
+            </div>
+
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Admin Email</label>
+                <input
+                  type="email"
+                  required
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 placeholder-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
+                  placeholder="admin@nafis.info"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={forgotLoading}
+                className="w-full bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg transition-colors cursor-pointer"
+              >
+                {forgotLoading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+            </form>
+
+            {forgotErr && (
+              <div className="p-3 bg-rose-950/30 border border-rose-800/20 rounded-xl text-rose-400 text-xs font-semibold text-center">
+                {forgotErr}
+              </div>
+            )}
+
+            {forgotSuccessMsg && (
+              <div className="p-3 bg-emerald-950/30 border border-emerald-800/20 rounded-xl text-emerald-400 text-xs font-semibold text-center">
+                {forgotSuccessMsg}
+              </div>
+            )}
+            
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginView('login');
+                  setForgotErr('');
+                  setForgotSuccessMsg('');
+                }}
+                className="text-xs text-slate-400 hover:text-slate-200 underline focus:outline-none cursor-pointer"
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-md mx-auto my-24 bg-slate-950 border border-slate-900 rounded-2xl p-8 space-y-6 shadow-2xl">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-xl bg-indigo-950/50 border border-indigo-800/30 flex items-center justify-center text-indigo-400 mx-auto">
+                <Lock size={20} />
+              </div>
+              <h2 className="text-xl font-black tracking-tight text-slate-100">Reset Password</h2>
+              <p className="text-xs text-slate-500">Please choose a strong new password for your account.</p>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">New Password</label>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 placeholder-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 placeholder-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={resetLoading}
+                className="w-full bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-slate-950 font-bold text-xs py-2.5 rounded-xl shadow-lg transition-colors cursor-pointer"
+              >
+                {resetLoading ? 'Resetting...' : 'Update Password'}
+              </button>
+            </form>
+
+            {resetErr && (
+              <div className="p-3 bg-rose-950/30 border border-rose-800/20 rounded-xl text-rose-400 text-xs font-semibold text-center">
+                {resetErr}
+              </div>
+            )}
+
+            {resetSuccessMsg && (
+              <div className="p-3 bg-emerald-950/30 border border-emerald-800/20 rounded-xl text-emerald-400 text-xs font-semibold text-center">
+                {resetSuccessMsg}
+              </div>
+            )}
+            
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginView('login');
+                  setResetErr('');
+                  setResetSuccessMsg('');
+                }}
+                className="text-xs text-slate-400 hover:text-slate-200 underline focus:outline-none cursor-pointer"
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
+        )
       ) : (
         
         /* DYNAMIC ADMIN CONTROL DASHBOARD */
@@ -502,7 +762,8 @@ export default function AdminApp() {
               { id: 'achievements', label: 'Achievements', icon: Award },
               { id: 'startups', label: 'Startups', icon: Globe },
               { id: 'skills', label: 'Skills', icon: Users },
-              { id: 'messages', label: 'Inbox', icon: Mail }
+              { id: 'messages', label: 'Inbox', icon: Mail },
+              { id: 'security', label: 'Security', icon: Shield }
             ].map((t) => (
               <button
                 key={t.id}
@@ -579,8 +840,18 @@ export default function AdminApp() {
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Avatar / Profile Photo URL</label>
                     <div className="flex gap-3 items-center">
-                      {profile.avatarUrl && (
+                      {profile.avatarUrl ? (
                         <img src={resolveImageUrl(profile.avatarUrl)} alt="Avatar Preview" className="w-10 h-10 rounded-full object-cover border border-slate-800" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-950 flex items-center justify-center text-[10px] font-bold text-indigo-400 border border-slate-800 uppercase shrink-0">
+                          {(() => {
+                            if (!profile.fullName) return 'N';
+                            const parts = profile.fullName.split(' ').filter((p: string) => p && p !== 'Md.' && p !== 'Md');
+                            if (parts.length === 0) return 'N';
+                            if (parts.length === 1) return parts[0][0].toUpperCase();
+                            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                          })()}
+                        </div>
                       )}
                       <input type="text" value={profile.avatarUrl || ''} onChange={(e) => setProfile({ ...profile, avatarUrl: e.target.value })} className="flex-1 bg-slate-900 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500" />
                       <label className="px-3 py-2 bg-indigo-950 hover:bg-indigo-900 text-indigo-400 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer border border-indigo-900/40">
@@ -694,6 +965,35 @@ export default function AdminApp() {
                   </div>
                 </div>
 
+                {/* Visitor Counter Configuration */}
+                <div className="border-t border-slate-900 pt-4 space-y-4">
+                  <h4 className="text-[10px] font-bold text-slate-200 uppercase tracking-wider block">Website Visitor Counter Configuration</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <label className="flex items-center gap-2 text-xs text-slate-300 font-semibold cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!profile.showVisitorCount}
+                        onChange={(e) => setProfile({
+                          ...profile,
+                          showVisitorCount: e.target.checked
+                        })}
+                        className="w-4 h-4 rounded border-slate-800 text-indigo-500 focus:ring-indigo-500 bg-slate-900"
+                      />
+                      <span>Show Visitor Counter in public footer</span>
+                    </label>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Current Website Visits (Read-only)</label>
+                      <input
+                        type="text"
+                        disabled
+                        value={profile.visitCount ?? 0}
+                        className="w-full bg-slate-900/50 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Statistics & Counters Configuration */}
                 <div className="border-t border-slate-900 pt-4 space-y-4">
                   <h4 className="text-[10px] font-bold text-slate-200 uppercase tracking-wider block">Custom Statistics & Counter Metrics (FR-CMS-07)</h4>
@@ -791,7 +1091,7 @@ export default function AdminApp() {
                   <h4 className="font-bold text-slate-200 text-sm">Projects Inventory</h4>
                   <button
                     onClick={() => {
-                      setEditingProject({ title: '', client: '', category: 'Enterprise', description: '', status: 'Delivered', technologies: [], repositoryUrl: '', liveUrl: '', thumbnailUrl: '', sortOrder: projects.length + 1 });
+                      setEditingProject({ title: '', client: '', category: 'Enterprise', description: '', status: 'Delivered', sdlcStage: 'Maintenance', technologies: [], repositoryUrl: '', liveUrl: '', thumbnailUrl: '', sortOrder: projects.length + 1 });
                       setCrudModal({ type: 'project', mode: 'add' });
                     }}
                     className="px-3.5 py-1.5 bg-indigo-950 border border-indigo-800/40 text-indigo-400 hover:bg-indigo-950/60 text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -1326,6 +1626,73 @@ export default function AdminApp() {
               </div>
             )}
 
+            {/* TAB: SECURITY */}
+            {adminTab === 'security' && (
+              <div className="space-y-6">
+                <h4 className="font-bold text-slate-200 text-sm border-b border-slate-900 pb-3">CMS Security</h4>
+                
+                <div className="max-w-md">
+                  {/* Password Change Card */}
+                  <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                    <h5 className="font-bold text-slate-200 text-xs uppercase tracking-wider text-indigo-400">Update Administrator Password</h5>
+                    <form onSubmit={handleChangePassword} className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Current Password</label>
+                        <input
+                          type="password"
+                          required
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">New Password</label>
+                        <input
+                          type="password"
+                          required
+                          value={changeNewPassword}
+                          onChange={(e) => setChangeNewPassword(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Confirm New Password</label>
+                        <input
+                          type="password"
+                          required
+                          value={changeConfirmPassword}
+                          onChange={(e) => setChangeConfirmPassword(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={changePasswordLoading}
+                        className="w-full bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition-colors cursor-pointer"
+                      >
+                        {changePasswordLoading ? 'Updating...' : 'Update Password'}
+                      </button>
+                    </form>
+
+                    {changePasswordError && (
+                      <div className="p-3 bg-rose-950/30 border border-rose-800/20 rounded-xl text-rose-400 text-xs font-semibold text-center">
+                        {changePasswordError}
+                      </div>
+                    )}
+                    {changePasswordSuccess && (
+                      <div className="p-3 bg-emerald-950/30 border border-emerald-800/20 rounded-xl text-emerald-400 text-xs font-semibold text-center">
+                        {changePasswordSuccess}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* ─────── MODAL: PROJECT CRUD EDITOR ─────── */}
@@ -1361,13 +1728,32 @@ export default function AdminApp() {
                   <textarea required rows={3} value={editingProject.description} onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })} className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500 resize-none" />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Delivery Status</label>
-                    <select value={editingProject.status} onChange={(e) => setEditingProject({ ...editingProject, status: e.target.value })} className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500">
+                    <select value={editingProject.status} onChange={(e) => {
+                      const newStatus = e.target.value;
+                      let newStage = editingProject.sdlcStage || 'Planning';
+                      if (newStatus === 'Delivered') newStage = 'Maintenance';
+                      else if (newStatus === 'In Progress') newStage = 'Implementation';
+                      else if (newStatus === 'Planned') newStage = 'Planning';
+                      setEditingProject({ ...editingProject, status: newStatus, sdlcStage: newStage });
+                    }} className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500">
                       <option value="Delivered">Delivered</option>
                       <option value="In Progress">In Progress</option>
                       <option value="Planned">Planned</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">SDLC Stage</label>
+                    <select value={editingProject.sdlcStage || 'Planning'} onChange={(e) => setEditingProject({ ...editingProject, sdlcStage: e.target.value })} className="w-full bg-slate-950 border border-slate-800 text-xs px-3 py-2.5 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500">
+                      <option value="Planning">Planning</option>
+                      <option value="Analysis">Analysis</option>
+                      <option value="Design">Design</option>
+                      <option value="Implementation">Implementation</option>
+                      <option value="Testing">Testing</option>
+                      <option value="Deployment">Deployment</option>
+                      <option value="Maintenance">Maintenance</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">

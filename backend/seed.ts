@@ -243,6 +243,7 @@ const seedDatabase = async () => {
         client: 'Bangladesh Navy',
         category: 'Enterprise',
         status: 'Delivered',
+        sdlcStage: 'Maintenance',
         description: 'Spearheaded the development phase and Agile sprint methodology for a comprehensive budget tracking system. (Note: Exclusively focused on financial management, not naval rating systems).',
         technologies: ['Agile', 'PostgreSQL', 'Springboot'],
         sortOrder: 1
@@ -252,6 +253,7 @@ const seedDatabase = async () => {
         client: 'BMTF',
         category: 'Enterprise',
         status: 'In Progress',
+        sdlcStage: 'Implementation',
         description: 'Managed issue documentation and module stabilization for enterprise payroll and bonus systems.',
         technologies: ['ERP', 'Gap Analysis', 'Agile'],
         sortOrder: 2
@@ -261,6 +263,7 @@ const seedDatabase = async () => {
         client: 'Bangladesh Navy',
         category: 'Enterprise',
         status: 'Delivered',
+        sdlcStage: 'Maintenance',
         description: 'Finalized Software Requirements Specifications (SRS) on-site at the Lalua Chor naval base.',
         technologies: ['SRS', 'CMS', 'Requirement Engineering'],
         sortOrder: 3
@@ -270,6 +273,7 @@ const seedDatabase = async () => {
         client: 'Samson Kofi Larbi',
         category: 'Enterprise',
         status: 'Delivered',
+        sdlcStage: 'Maintenance',
         description: 'Coordinated development and support handover for 12 identical medical software installations globally.',
         technologies: ['React', 'PostgreSQL', 'Springboot'],
         sortOrder: 4
@@ -279,6 +283,7 @@ const seedDatabase = async () => {
         client: 'BRAC University',
         category: 'Academic',
         status: 'Delivered',
+        sdlcStage: 'Maintenance',
         description: 'Student portal with schedule planning and course selection optimization. Built to demonstrate full-stack architectural integration.',
         technologies: ['React', 'TypeScript', 'MongoDB', 'Tailwind'],
         sortOrder: 5
@@ -288,6 +293,7 @@ const seedDatabase = async () => {
         client: 'BRAC University',
         category: 'Academic',
         status: 'Delivered',
+        sdlcStage: 'Maintenance',
         description: 'Club activity tracker and event approval workflow automation for the BRAC University Office of Co-Curricular Activities.',
         technologies: ['Next.js', 'React', 'MongoDB'],
         sortOrder: 6

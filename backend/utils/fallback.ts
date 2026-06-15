@@ -55,7 +55,7 @@ export const fallbackProfile = {
         'I bridge business needs with engineering execution, specializing in Agile project management methodologies, sprint planning, and Work Breakdown Structures (WBS).',
         'Currently operating out of Dhaka and Rangpur, my core focus is driving delivery efficiency across enterprise and government clients.'
       ],
-      avatarUrl: '/profile.png',
+      avatarUrl: '',
       heroBadgeText: 'CSPO® Certified Product Owner',
       aboutStatusText: 'Currently active at ATI Limited — Full-Time',
       designTokens: {
@@ -93,7 +93,15 @@ export const fallbackProfile = {
         { name: 'Bangladesh Maritime University', icon: '🎓' },
         { name: 'ATI Limited', icon: '💼' },
         { name: 'Ghana Healthcare Client', icon: '🏥' }
-      ]
+      ],
+      visitCount: 0,
+      showVisitorCount: false,
+      smtpHost: '',
+      smtpPort: 587,
+      smtpUser: '',
+      smtpPass: '',
+      smtpFrom: '',
+      smtpTo: 'mdnafissadiqueniloy@gmail.com'
     };
     const data = readLocalFile('profile.json', defaultProfile);
     if (Array.isArray(data) || !data.fullName) return defaultProfile;
@@ -110,6 +118,7 @@ export const fallbackProjects = {
       client: 'Bangladesh Navy',
       category: 'Enterprise',
       status: 'Delivered',
+      sdlcStage: 'Maintenance',
       description: 'Spearheaded the development phase and Agile sprint methodology for a comprehensive budget tracking system. (Note: Exclusively focused on financial management, not naval rating systems).',
       technologies: ['Agile', 'PostgreSQL', 'Springboot'],
       repositoryUrl: '',
@@ -123,6 +132,7 @@ export const fallbackProjects = {
       client: 'BMTF',
       category: 'Enterprise',
       status: 'In Progress',
+      sdlcStage: 'Implementation',
       description: 'Managed issue documentation and module stabilization for enterprise payroll and bonus systems.',
       technologies: ['ERP', 'Gap Analysis', 'Agile'],
       repositoryUrl: '',
@@ -136,6 +146,7 @@ export const fallbackProjects = {
       client: 'Bangladesh Navy',
       category: 'Enterprise',
       status: 'Delivered',
+      sdlcStage: 'Maintenance',
       description: 'Finalized Software Requirements Specifications (SRS) on-site at the Lalua Chor naval base.',
       technologies: ['SRS', 'CMS', 'Requirement Engineering'],
       repositoryUrl: '',
@@ -149,6 +160,7 @@ export const fallbackProjects = {
       client: 'Samson Kofi Larbi',
       category: 'Enterprise',
       status: 'Delivered',
+      sdlcStage: 'Maintenance',
       description: 'Coordinated development and support handover for 12 identical medical software installations globally.',
       technologies: ['React', 'PostgreSQL', 'Springboot'],
       repositoryUrl: '',
@@ -162,6 +174,7 @@ export const fallbackProjects = {
       client: 'BRAC University',
       category: 'Academic',
       status: 'Delivered',
+      sdlcStage: 'Maintenance',
       description: 'Student portal with schedule planning and course selection optimization. Built to demonstrate full-stack architectural integration.',
       technologies: ['React', 'TypeScript', 'MongoDB', 'Tailwind'],
       repositoryUrl: '',
@@ -175,6 +188,7 @@ export const fallbackProjects = {
       client: 'BRAC University',
       category: 'Academic',
       status: 'Delivered',
+      sdlcStage: 'Maintenance',
       description: 'Club activity tracker and event approval workflow automation for the BRAC University Office of Co-Curricular Activities.',
       technologies: ['Next.js', 'React', 'MongoDB'],
       repositoryUrl: '',

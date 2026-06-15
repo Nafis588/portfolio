@@ -113,7 +113,7 @@ export default function App() {
       'I bridge business needs with engineering execution, specializing in Agile project management methodologies, sprint planning, and Work Breakdown Structures (WBS).',
       'Currently operating out of Dhaka and Rangpur, my core focus is driving delivery efficiency across enterprise and government clients.'
     ],
-    avatarUrl: '/profile.png',
+    avatarUrl: '',
     heroBadgeText: 'CSPO® Certified Product Owner',
     aboutStatusText: 'Currently active at ATI Limited — Full-Time',
     designTokens: {
@@ -342,7 +342,7 @@ export default function App() {
   // Load backend content
   const loadData = async () => {
     try {
-      const settings = await fetchApi('/settings');
+      const settings = await fetchApi('/settings?increment=true');
       if (settings && settings.fullName) {
         setProfile(settings);
         
@@ -410,10 +410,13 @@ export default function App() {
       if (skillsData) setSkills(skillsData);
     } catch (e) {}
   };
-
+  // Load data once on mount
   useEffect(() => {
     loadData();
+  }, []);
 
+  // Set up scroll listener and IntersectionObserver when content updates
+  useEffect(() => {
     // Scroll reveal implementation
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -455,7 +458,6 @@ export default function App() {
       revealObserver.disconnect();
     };
   }, [projects, experiences, startups, skills]);
-
   // Typewriter Loop
   useEffect(() => {
     const typewriterRoles = (profile.heroTitles && profile.heroTitles.length > 0)
@@ -772,7 +774,19 @@ export default function App() {
         <div className="container">
           <div className="about-grid">
             <div className="about-photo-frame reveal-left">
-              <img src={resolveImageUrl(profile.avatarUrl) || '/profile.png'} alt={profile.fullName} id="about-photo" loading="lazy" />
+              {profile.avatarUrl ? (
+                <img src={resolveImageUrl(profile.avatarUrl)} alt={profile.fullName} id="about-photo" loading="lazy" />
+              ) : (
+                <div className="about-photo-placeholder">
+                  {(() => {
+                    if (!profile.fullName) return 'N';
+                    const parts = profile.fullName.split(' ').filter((p: string) => p && p !== 'Md.' && p !== 'Md');
+                    if (parts.length === 0) return 'N';
+                    if (parts.length === 1) return parts[0][0].toUpperCase();
+                    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                  })()}
+                </div>
+              )}
             </div>
 
             <div className="about-info">
@@ -943,9 +957,8 @@ export default function App() {
                 const statusClass = isCompleted ? 'delivered' : isQA ? 'in-qa' : 'in-dev';
                 
                 // SDLC visualization stages
-                let stage = 7;
-                if (proj.status === 'In Progress') stage = 4;
-                if (proj.status === 'Planned') stage = 1;
+                const stageIndex = SDLC_STAGES.indexOf(proj.sdlcStage || 'Planning');
+                const stage = stageIndex !== -1 ? stageIndex + 1 : 1;
 
                 return (
                   <div key={proj._id} className="project-card reveal" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
@@ -1242,6 +1255,11 @@ export default function App() {
           </div>
           <div className="footer-content">
             &copy; {currentYear} {profile.fullName || 'Md. Nafis Sadique Niloy'}. Built with ❤️
+            {profile.showVisitorCount && profile.visitCount !== undefined && (
+              <span className="visitor-counter" style={{ display: 'block', marginTop: '8px', fontSize: '0.75rem', opacity: 0.6 }}>
+                Visitor count: <strong>{profile.visitCount}</strong>
+              </span>
+            )}
           </div>
         </div>
       </footer>

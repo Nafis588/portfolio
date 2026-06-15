@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import Message from '../models/Message.js';
 import { authMiddleware, AuthRequest } from '../utils/auth.js';
+import { sendEmail } from '../utils/email.js';
 
 const router = express.Router();
 const localFilePath = path.join(process.cwd(), 'messages.json');
@@ -94,6 +95,29 @@ router.post('/', contactRateLimiter, async (req: Request, res: Response) => {
       console.log('MongoDB not connected. Saving message to local file fallback...');
       savedMessage = saveLocally({ name, email, subject, message });
     }
+
+    // Send email notification to admin asynchronously (don't block the HTTP response)
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #333333; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin-top: 15px; border-left: 4px solid #3b82f6;">
+          <p style="margin: 0; white-space: pre-wrap;">${message}</p>
+        </div>
+        <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #777777;">Submitted from Nafis Portfolio Website</p>
+      </div>
+    `;
+
+    sendEmail({
+      subject: `New Portfolio Message: ${subject}`,
+      html: emailHtml,
+      fromName: name,
+      fromEmail: email,
+      rawMessage: message
+    }).catch(err => console.error('Error in sendEmail trigger:', err));
 
     res.status(201).json({
       success: true,
