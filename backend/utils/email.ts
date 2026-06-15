@@ -58,7 +58,9 @@ export async function sendEmail({ to, subject, html, fromName, fromEmail, rawMes
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Referer': 'https://nafissn.vercel.app/',
+          'Origin': 'https://nafissn.vercel.app'
         },
         body: JSON.stringify(payload)
       });
